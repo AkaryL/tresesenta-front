@@ -1,0 +1,191 @@
+/* Mobile First - Minimalista */
+.profile-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--cafe-dark) 0%, var(--terracota) 100%);
+  padding-bottom: 80px;
+}
+
+/* Header */
+.profile-header {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--white);
+}
+
+.profile-avatar-container {
+  margin-bottom: 1rem;
+}
+
+.profile-avatar {
+  display: inline-block;
+}
+
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  background: var(--white);
+  color: var(--terracota);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.profile-username {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.profile-email {
+  font-size: 0.9375rem;
+  opacity: 0.9;
+}
+
+/* Content */
+.profile-content {
+  background: var(--cream);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 1.5rem 1rem;
+  min-height: 60vh;
+}
+
+.profile-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: var(--cafe-dark);
+}
+
+.section-header h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* Level */
+.level-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.level-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.level-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--terracota);
+}
+
+.level-points {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sage);
+}
+
+.level-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--arena);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.level-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--terracota), var(--sage));
+  border-radius: var(--radius-full);
+}
+
+.level-next {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--sage);
+  text-align: center;
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.stat-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card svg {
+  color: var(--terracota);
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--terracota);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--sage);
+  font-weight: 500;
+}
+
+/* Logout Button */
+.btn-logout {
+  width: 100%;
+  padding: 1rem;
+  background: var(--white);
+  color: var(--terracota);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-top: 1.5rem;
+}
+
+.btn-logout:active {
+  background: var(--cream);
+}
+
+@media (min-width: 640px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .profile-page {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .profile-content {
+    padding: 2rem;
+  }
+}

@@ -1,0 +1,275 @@
+.routes-page {
+  min-height: 100vh;
+  background: white;
+  padding-bottom: 80px;
+}
+
+/* Minimal Header - Airbnb Style */
+.routes-header-minimal {
+  position: sticky;
+  top: 0;
+  background: white;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  z-index: 1000;
+}
+
+.routes-header-minimal h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--cafe-dark);
+  margin: 0;
+}
+
+.routes-content {
+  padding: 2rem 1rem;
+}
+
+.routes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.route-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #eee;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.route-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-color: #ddd;
+}
+
+.route-image {
+  width: 100%;
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.route-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.route-card:hover .route-image img {
+  transform: scale(1.05);
+}
+
+.route-category-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cafe-dark);
+  backdrop-filter: blur(10px);
+}
+
+.route-content {
+  padding: 1.5rem;
+}
+
+.route-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--cafe-dark);
+  margin: 0 0 0.75rem 0;
+}
+
+.route-description {
+  font-size: 0.95rem;
+  color: var(--sage);
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.route-meta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.route-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--cafe-dark);
+}
+
+.meta-icon {
+  font-size: 1rem;
+}
+
+.btn-explore-route {
+  width: 100%;
+  padding: 0.875rem;
+  background: var(--terracota);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-explore-route:hover {
+  background: var(--cafe-dark);
+  transform: translateY(-2px);
+}
+
+.btn-create-route {
+  width: 100%;
+  padding: 1.25rem;
+  background: white;
+  color: var(--terracota);
+  border: 2px dashed var(--terracota);
+  border-radius: 16px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-create-route:hover {
+  background: var(--terracota);
+  color: white;
+  border-style: solid;
+  transform: translateY(-2px);
+}
+
+/* Modal */
+.route-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.route-modal {
+  background: white;
+  border-radius: 24px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  transition: all 0.3s;
+}
+
+.modal-close:hover {
+  transform: scale(1.1);
+  background: var(--terracota);
+  color: white;
+}
+
+.modal-header img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 24px 24px 0 0;
+}
+
+.modal-content {
+  padding: 2rem;
+}
+
+.modal-content h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--cafe-dark);
+  margin: 0 0 1rem 0;
+}
+
+.modal-content p {
+  font-size: 1rem;
+  color: var(--sage);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+}
+
+.modal-meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.modal-meta span {
+  background: var(--cream);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cafe-dark);
+}
+
+.btn-start-route {
+  width: 100%;
+  padding: 1rem;
+  background: var(--terracota);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Inter', sans-serif;
+}
+
+.btn-start-route:hover {
+  background: var(--cafe-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+  .routes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .routes-title {
+    font-size: 1.75rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+  }
+}
