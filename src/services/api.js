@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:4000/api';
 
 // Create axios instance
 const api = axios.create({
@@ -21,9 +21,18 @@ api.interceptors.request.use((config) => {
 
 // Auth
 export const authAPI = {
+  // OTP Flow (Shopify)
+  requestCode: (email) => api.post('/auth/request-code', { email }),
+  registerAndSendCode: (data) => api.post('/auth/register-and-send-code', data),
+  verifyCode: (email, code) => api.post('/auth/verify-code', { email, code }),
+
+  // Legacy (password)
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
+
+  // User
   me: () => api.get('/auth/me'),
+  myOrders: () => api.get('/auth/my-orders'),
 };
 
 // Pins

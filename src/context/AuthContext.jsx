@@ -72,13 +72,23 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
+  };
+
+  // Login directo con token (para OTP)
+  const loginWithToken = (token, userData) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    setLoading(false);
   };
 
   const value = {
     user,
     loading,
     login,
+    loginWithToken,
     register,
     logout,
     isAuthenticated: !!user,
