@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,25 +6,63 @@
 
 /* TRESESENTA MAPA360 - Mobile First Minimalista */
 :root {
-  /* Paleta TRESESENTA */
-  --arena: #E8DCC8;
-  --terracota: #C67B5C;
-  --sage: #8B9B7E;
-  --cafe-dark: #4A3A2A;
-  --cream: #F5F0E8;
-  --white: #FFFFFF;
-  --black: #1A1A1A;
+  /* Paleta Principal TRESESENTA */
+  --black: #000000;
+  --white: #ffffff;
+  --gray-warm: #aeaa9f;
+  --gray-light: #efefef;
+  --cream: #f5f0e8;
+
+  /* Paleta Alternativa */
+  --beige: #d6cfc4;
+  --camel: #b89b7a;
+  --brown: #7a6a58;
+  --sage: #8f9b8a;
+  --silver: #c7c7c5;
+  --gray-mid: #9a9a96;
+  --charcoal: #4a4a48;
+  --gray-green: #bfc0be;
+  --steel: #7f8a92;
+  --olive: #9aa79a;
+  --sand: #cfcac2;
+  --dark: #2f2f2e;
+
+  /* Colores de Categorías */
+  --cat-parques: #7ed957;
+  --cat-restaurante: #9b59b6;
+  --cat-vida-nocturna: #85c1e9;
+  --cat-cafeteria: #f5a623;
+  --cat-cultura: #e84393;
+  --cat-favoritos: #f1c40f;
+
+  /* Colores del Mapa */
+  --map-road: #B59E7D;
+  --map-bg: #F9F9F9;
+  --map-water: #9EE4FE;
+  --map-park: #DEF7E2;
+
+  /* Colores de Perfil */
+  --profile-beige: #d6cfc4;
+  --profile-camel: #b89b7a;
+  --profile-sage: #8f9b8a;
+  --profile-gray: #9a9a96;
+  --profile-steel: #7f8a92;
+  --profile-olive: #343316;
 
   /* Shadows Minimalistas */
-  --shadow-sm: 0 1px 2px rgba(74, 58, 42, 0.04);
-  --shadow-md: 0 2px 8px rgba(74, 58, 42, 0.06);
-  --shadow-lg: 0 4px 16px rgba(74, 58, 42, 0.08);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
 
   /* Border Radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-full: 9999px;
+
+  /* Tipografías */
+  --font-heading: 'Libre Baskerville', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 * {
@@ -41,31 +79,35 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-body);
   background: var(--cream);
-  color: var(--cafe-dark);
+  color: var(--black);
   line-height: 1.5;
   overflow-x: hidden;
   min-height: 100vh;
 }
 
-/* Typography Mobile First */
+/* Typography Mobile First - Libre Baskerville para títulos */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
 h1 {
   font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 h3 {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 @media (min-width: 768px) {
@@ -118,12 +160,12 @@ img {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--arena);
+  background: var(--gray-warm);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--sage);
+  background: var(--gray-mid);
 }
 
 /* Mobile Safe Area */

@@ -31,6 +31,7 @@ const Create = () => {
     latitude: '',
     longitude: '',
     shoe_model: '',
+    used_tresesenta: false,
   });
 
   useEffect(() => {
@@ -303,6 +304,19 @@ const Create = () => {
                 </p>
               )}
             </div>
+
+            {/* Checkbox Tresesenta - Verificación */}
+            <label className="tresesenta-checkbox">
+              <input
+                type="checkbox"
+                checked={formData.used_tresesenta}
+                onChange={(e) => setFormData({ ...formData, used_tresesenta: e.target.checked })}
+              />
+              <div className="tresesenta-checkbox-content">
+                <strong>Usé mis tenis Tresesenta en esta publicación</strong>
+                <span>Gana puntos extra por compartir tu experiencia real.</span>
+              </div>
+            </label>
           </div>
         </form>
       </div>

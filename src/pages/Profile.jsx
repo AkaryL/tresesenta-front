@@ -1,30 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Award, TrendingUp, MapPin, Heart, Sparkles, Package, ChevronDown, ChevronUp } from 'lucide-react';
+import { LogOut, Plus, Heart, Route, Gift, ChevronRight, Award } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import './Profile.css';
 
 const LEVELS = [
-  { name: 'Explorador Novato', min: 0, max: 100 },
-  { name: 'Viajero Urbano', min: 100, max: 500 },
-  { name: 'Aventurero Experto', min: 500, max: 1500 },
-  { name: 'Nomada Digital', min: 1500, max: 3500 },
-  { name: 'Leyenda Mexico', min: 3500, max: 999999 },
+  { name: 'Explorador Novato', min: 0, max: 5000 },
+  { name: 'Viajero Local', min: 5000, max: 15000 },
+  { name: 'Aventurero Experto', min: 15000, max: 30000 },
+  { name: 'Explorador Universal', min: 30000, max: 50000 },
+  { name: 'Leyenda 360', min: 50000, max: 999999 },
+];
+
+const PROFILE_COLORS = [
+  { id: 'beige', bg: '#d6cfc4', wave: '#AEAA9F' },
+  { id: 'camel', bg: '#b89b7a', wave: '#A88565' },
+  { id: 'sage', bg: '#8f9b8a', wave: '#9AA79A' },
+  { id: 'gray', bg: '#9a9a96', wave: '#747678' },
+  { id: 'steel', bg: '#7f8a92', wave: '#7F8A92' },
+  { id: 'olive', bg: '#343316', wave: '#44431D' },
+];
+
+// Medallas de ejemplo (en produccion vendrian del backend)
+const SAMPLE_BADGES = [
+  { id: 1, name: 'Sello Mayab', state: 'Yucatan', image: null, unlocked: true },
+  { id: 2, name: 'Raices Eternas', state: 'Oaxaca', image: null, unlocked: true },
+  { id: 3, name: 'Ruta Completa', state: 'Nacional', image: null, unlocked: true },
+  { id: 4, name: 'Desierto y Mar', state: 'Sonora', image: null, unlocked: true },
+  { id: 5, name: 'Camino Real', state: 'Queretaro', image: null, unlocked: false },
+  { id: 6, name: 'Capital Viva', state: 'CDMX', image: null, unlocked: false },
 ];
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [selectedColor, setSelectedColor] = useState('olive');
+  const [badges, setBadges] = useState(SAMPLE_BADGES);
 
-  const [collection, setCollection] = useState([]);
-  const [loadingCollection, setLoadingCollection] = useState(false);
-  const [collectionError, setCollectionError] = useState('');
-  const [showCollection, setShowCollection] = useState(false);
-
-  const userPoints = user?.total_points || 250;
+  const userPoints = user?.total_points || 36000;
+  const unlockedBadges = badges.filter(b => b.unlocked).length;
+  const totalBadges = 32;
 
   const getLevelInfo = (points) => {
     for (let i = 0; i < LEVELS.length; i++) {
@@ -42,236 +60,174 @@ const Profile = () => {
   };
 
   const levelInfo = getLevelInfo(userPoints);
+  const currentColorScheme = PROFILE_COLORS.find(c => c.id === selectedColor) || PROFILE_COLORS[5];
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
-  const loadCollection = async () => {
-    if (collection.length > 0) {
-      setShowCollection(!showCollection);
-      return;
-    }
-
-    setLoadingCollection(true);
-    setCollectionError('');
-
-    try {
-      const response = await authAPI.myOrders();
-      const orders = response.data.orders || [];
-
-      // Mostrar TODA la info para debug
-      const items = [];
-      orders.forEach(order => {
-        order.items.forEach(item => {
-          items.push({
-            // Info del item
-            title: item.title,
-            variant_title: item.variant_title,
-            quantity: item.quantity,
-            price: item.price,
-            sku: item.sku,
-            image: item.image,
-            // Info de la orden
-            order_id: order.order_id,
-            order_number: order.order_number,
-            order_name: order.name,
-            order_date: order.created_at,
-            total_price: order.total_price,
-            currency: order.currency,
-            financial_status: order.financial_status,
-            fulfillment_status: order.fulfillment_status,
-            shipping_city: order.shipping_address?.city,
-            shipping_province: order.shipping_address?.province,
-            shipping_country: order.shipping_address?.country,
-          });
-        });
-      });
-
-      setCollection(items);
-      setShowCollection(true);
-    } catch (error) {
-      setCollectionError('Error al cargar tu coleccion');
-      console.error(error);
-    } finally {
-      setLoadingCollection(false);
-    }
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('es-MX', {
-      year: 'numeric',
-      month: 'short',
-    });
-  };
+  const menuItems = [
+    { icon: Plus, label: 'Crear Pin', action: () => navigate('/create') },
+    { icon: Heart, label: 'Favoritos', action: () => {} },
+    { icon: Route, label: 'Ver rutas guardadas', action: () => navigate('/routes') },
+    { icon: Gift, label: 'Intercambiar puntos', action: () => {} },
+  ];
 
   return (
     <div className="profile-page">
-      {/* Header */}
-      <div className="profile-header">
-        <div className="profile-avatar-container">
-          <div className="profile-avatar">
-            <div className="avatar-circle">{user?.username?.charAt(0).toUpperCase() || 'U'}</div>
-          </div>
-        </div>
-        <h1 className="profile-username">@{user?.username || 'usuario'}</h1>
-        <p className="profile-email">{user?.email || 'email@example.com'}</p>
+      {/* Pasaporte Header */}
+      <div
+        className="passport-header"
+        style={{ backgroundColor: currentColorScheme.bg }}
+      >
+        {/* Ondas decorativas */}
+        <svg className="passport-waves" viewBox="0 0 400 100" preserveAspectRatio="none">
+          <path
+            d="M0,50 Q50,30 100,50 T200,50 T300,50 T400,50 L400,100 L0,100 Z"
+            fill={currentColorScheme.wave}
+            opacity="0.3"
+          />
+          <path
+            d="M0,60 Q50,40 100,60 T200,60 T300,60 T400,60 L400,100 L0,100 Z"
+            fill={currentColorScheme.wave}
+            opacity="0.2"
+          />
+          <path
+            d="M0,70 Q50,50 100,70 T200,70 T300,70 T400,70 L400,100 L0,100 Z"
+            fill={currentColorScheme.wave}
+            opacity="0.15"
+          />
+        </svg>
+
+        <h1 className="passport-title">PASAPORTE 360</h1>
       </div>
 
-      {/* Content */}
-      <div className="profile-content">
-        {/* Level */}
-        <motion.section
-          className="profile-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="section-header">
-            <TrendingUp size={20} />
-            <h2>Mi Nivel</h2>
+      {/* Profile Card */}
+      <div className="profile-card">
+        {/* Avatar y Info */}
+        <div className="profile-info-section">
+          <div className="profile-avatar-wrapper">
+            <div className="profile-avatar">
+              {user?.avatar_url ? (
+                <img src={user.avatar_url} alt={user.username} />
+              ) : (
+                <span>{user?.username?.charAt(0).toUpperCase() || 'U'}</span>
+              )}
+            </div>
           </div>
 
-          <div className="level-card">
-            <div className="level-top">
-              <span className="level-name">{levelInfo.current}</span>
-              <span className="level-points">{userPoints} pts</span>
-            </div>
+          <div className="profile-details">
+            <h2 className="profile-name">{user?.full_name || 'NOMBRE DE USUARIO'}</h2>
+            <p className="profile-username">@{user?.username || 'user-name'}</p>
+          </div>
+        </div>
 
-            <div className="level-bar">
+        {/* Progress Bar */}
+        <div className="points-section">
+          <div className="points-bar-container">
+            <div className="points-bar">
               <motion.div
-                className="level-fill"
+                className="points-fill"
                 initial={{ width: 0 }}
                 animate={{ width: `${levelInfo.progress}%` }}
-                transition={{ duration: 1 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
               />
-            </div>
-
-            {levelInfo.next && (
-              <p className="level-next">{levelInfo.pointsToNext} pts para {levelInfo.next}</p>
-            )}
-          </div>
-        </motion.section>
-
-        {/* Stats */}
-        <motion.section
-          className="profile-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <div className="section-header">
-            <Award size={20} />
-            <h2>Estadisticas</h2>
-          </div>
-
-          <div className="stats-grid">
-            <div className="stat-card">
-              <MapPin size={24} />
-              <span className="stat-value">12</span>
-              <span className="stat-label">Pins</span>
-            </div>
-            <div className="stat-card">
-              <Heart size={24} />
-              <span className="stat-value">45</span>
-              <span className="stat-label">Likes</span>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Mi Coleccion */}
-        {user?.shopify_customer_id && (
-          <motion.section
-            className="profile-section"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <button className="section-header section-header-btn" onClick={loadCollection}>
-              <div className="section-header-left">
-                <Sparkles size={20} />
-                <h2>Mi Coleccion</h2>
+              {/* Marcadores de progreso */}
+              <div className="points-markers">
+                {[0, 25, 50, 75, 100].map((pos, i) => (
+                  <div
+                    key={i}
+                    className={`marker ${levelInfo.progress >= pos ? 'active' : ''}`}
+                    style={{ left: `${pos}%` }}
+                  />
+                ))}
               </div>
-              {loadingCollection ? (
-                <div className="spinner-small"></div>
-              ) : showCollection ? (
-                <ChevronUp size={20} />
-              ) : (
-                <ChevronDown size={20} />
-              )}
+            </div>
+            <div className="points-total">
+              <span className="points-number">{userPoints.toLocaleString()}</span>
+              <span className="points-label">PUNTOS</span>
+            </div>
+          </div>
+
+          {levelInfo.next && (
+            <p className="points-message">
+              Faltan <strong>{levelInfo.pointsToNext.toLocaleString()} puntos</strong> para alcanzar <em>{levelInfo.next.toLowerCase()}</em>.
+            </p>
+          )}
+        </div>
+
+        {/* Medallas Section */}
+        <div className="badges-section">
+          <button className="badges-header" onClick={() => navigate('/badges')}>
+            <div className="badges-title">
+              <Award size={18} />
+              <span>MEDALLAS</span>
+              <span className="badges-count">({unlockedBadges}/{totalBadges})</span>
+            </div>
+            <ChevronRight size={20} />
+          </button>
+
+          <div className="badges-grid">
+            {badges.slice(0, 6).map((badge) => (
+              <div
+                key={badge.id}
+                className={`badge-item ${badge.unlocked ? '' : 'locked'}`}
+              >
+                <div className="badge-circle">
+                  {badge.unlocked ? (
+                    <span className="badge-emoji">🏅</span>
+                  ) : (
+                    <span className="badge-locked">?</span>
+                  )}
+                </div>
+                <span className="badge-name">{badge.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Menu Actions */}
+        <div className="profile-menu">
+          {menuItems.map((item, index) => (
+            <button
+              key={index}
+              className="menu-item"
+              onClick={item.action}
+            >
+              <span className="menu-label">{item.label}</span>
+              <ChevronRight size={18} className="menu-arrow" />
             </button>
+          ))}
+        </div>
 
-            {collectionError && <p className="orders-error">{collectionError}</p>}
-
-            {showCollection && (
-              <div className="collection-container">
-                {collection.length === 0 ? (
-                  <div className="collection-empty">
-                    <div className="collection-empty-icon">
-                      <Package size={48} />
-                    </div>
-                    <h3>Tu coleccion esta vacia</h3>
-                    <p>Consigue tus primeros tenis y desbloquea logros</p>
-                    <a
-                      href="https://tresesenta.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-get-more"
-                    >
-                      <Sparkles size={18} />
-                      Explorar tienda
-                    </a>
-                  </div>
-                ) : (
-                  <>
-                    <div className="collection-header">
-                      <span className="collection-count">
-                        {collection.length} {collection.length === 1 ? 'par conseguido' : 'pares conseguidos'}
-                      </span>
-                    </div>
-
-                    <div className="collection-grid">
-                      {collection.map((item, idx) => (
-                        <div key={idx} className="collection-item">
-                          <div className="collection-item-icon">
-                            {item.image ? (
-                              <img src={item.image} alt={item.title} />
-                            ) : (
-                              <span className="sneaker-emoji">👟</span>
-                            )}
-                          </div>
-                          <div className="collection-item-info">
-                            <h4 className="collection-item-name">{item.title}</h4>
-                            {item.variant_title && (
-                              <span className="collection-item-variant">{item.variant_title}</span>
-                            )}
-                            <span className="collection-item-date">
-                              Conseguido {formatDate(item.order_date)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <a
-                      href="https://tresesenta.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-get-more"
-                    >
-                      <Sparkles size={18} />
-                      Conseguir mas
-                    </a>
-                  </>
-                )}
-              </div>
-            )}
-          </motion.section>
-        )}
+        {/* Color Selector */}
+        <div className="color-selector">
+          <span className="color-label">Color del pasaporte:</span>
+          <div className="color-options">
+            {PROFILE_COLORS.map((color) => (
+              <button
+                key={color.id}
+                className={`color-option ${selectedColor === color.id ? 'selected' : ''}`}
+                style={{ backgroundColor: color.bg }}
+                onClick={() => setSelectedColor(color.id)}
+              >
+                {/* Onda decorativa en miniatura */}
+                <svg viewBox="0 0 40 40" className="color-wave-preview">
+                  <path
+                    d="M0,25 Q10,20 20,25 T40,25 L40,40 L0,40 Z"
+                    fill={color.wave}
+                    opacity="0.5"
+                  />
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Logout */}
         <button className="btn-logout" onClick={handleLogout}>
-          <LogOut size={20} />
+          <LogOut size={18} />
           <span>Cerrar Sesion</span>
         </button>
       </div>

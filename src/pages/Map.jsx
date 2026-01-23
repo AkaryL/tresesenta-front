@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import {
   MapPin, Heart, MessageCircle, X, Navigation,
-  Coffee, Moon, Palette, Sparkles, Globe, Leaf, Building2
+  Coffee, Wine, Palette, Star, Globe, Trees, Utensils
 } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import { pinsAPI, categoriesAPI } from '../services/api';
@@ -10,25 +10,25 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
 
-// Colores mexicanos vibrantes para cada categoría
+// Colores de categorías según diseño Mapa 360
 const CATEGORY_COLORS = {
-  'MONUMENTOS': '#E74C3C',
-  'NATURALEZA / CAMINOS': '#27AE60',
-  'CAFÉS': '#F39C12',
-  'NIGHTLIFE (BARES/RESTAURANTES)': '#9B59B6',
-  'MUSEOS / EXCURSIONES': '#3498DB',
-  'CURIOSOS': '#E91E63',
-  'default': '#C67B5C'
+  'Parques': '#7ed957',
+  'Restaurante': '#9b59b6',
+  'Vida Nocturna': '#85c1e9',
+  'Cafetería': '#f5a623',
+  'Cultura': '#e84393',
+  'Favoritos': '#f1c40f',
+  'default': '#b89b7a'
 };
 
-// Componentes de iconos para cada categoría (más significativos)
+// Componentes de iconos para cada categoría
 const CATEGORY_ICON_COMPONENTS = {
-  'MONUMENTOS': Building2,        // Edificio/monumento
-  'NATURALEZA / CAMINOS': Leaf,   // Hoja (naturaleza)
-  'CAFÉS': Coffee,                // Café
-  'NIGHTLIFE (BARES/RESTAURANTES)': Moon,  // Luna
-  'MUSEOS / EXCURSIONES': Palette,         // Paleta
-  'CURIOSOS': Sparkles,           // Estrellas
+  'Parques': Trees,
+  'Restaurante': Utensils,
+  'Vida Nocturna': Wine,
+  'Cafetería': Coffee,
+  'Cultura': Palette,
+  'Favoritos': Star,
   'default': MapPin
 };
 

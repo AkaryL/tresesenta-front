@@ -26,7 +26,7 @@
   justify-content: center;
   border: none;
   background: none;
-  color: var(--cafe-dark);
+  color: var(--black);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -38,13 +38,14 @@
 .create-header-minimal h1 {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--cafe-dark);
+  color: var(--black);
   margin: 0;
+  font-family: var(--font-body);
 }
 
 .btn-publish {
   padding: 0.5rem 1rem;
-  background: var(--terracota);
+  background: var(--camel);
   color: white;
   border: none;
   border-radius: 8px;
@@ -60,7 +61,7 @@
 }
 
 .btn-publish:not(:disabled):hover {
-  background: var(--cafe-dark);
+  background: var(--brown);
 }
 
 /* Content */
@@ -110,7 +111,7 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 500;
-  color: var(--cafe-dark);
+  color: var(--black);
 }
 
 .upload-placeholder span {
@@ -162,7 +163,7 @@
 }
 
 .btn-remove:hover {
-  background: var(--terracota);
+  background: var(--camel);
 }
 
 .add-more {
@@ -179,7 +180,7 @@
 }
 
 .add-more:hover {
-  border-color: var(--terracota);
+  border-color: var(--camel);
   background: #fafafa;
 }
 
@@ -208,7 +209,7 @@
 .field-group label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--cafe-dark);
+  color: var(--black);
 }
 
 .field-group input,
@@ -219,8 +220,8 @@
   border: 1.5px solid #ddd;
   border-radius: 8px;
   font-size: 0.9375rem;
-  font-family: 'Inter', sans-serif;
-  color: var(--cafe-dark);
+  font-family: var(--font-body);
+  color: var(--black);
   background: white;
   transition: all 0.2s;
 }
@@ -229,7 +230,7 @@
 .field-group textarea:focus,
 .field-group select:focus {
   outline: none;
-  border-color: var(--terracota);
+  border-color: var(--camel);
 }
 
 .field-group textarea {
@@ -258,18 +259,52 @@
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--cafe-dark);
+  color: var(--black);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
 }
 
 .btn-gps:hover {
-  border-color: var(--terracota);
+  border-color: var(--camel);
+}
+
+/* Checkbox Tresesenta */
+.tresesenta-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--beige);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.tresesenta-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--camel);
+  margin-top: 2px;
+}
+
+.tresesenta-checkbox-content {
+  flex: 1;
+}
+
+.tresesenta-checkbox-content strong {
+  display: block;
+  font-size: 0.9375rem;
+  color: var(--black);
+  margin-bottom: 0.25rem;
+}
+
+.tresesenta-checkbox-content span {
+  font-size: 0.8125rem;
+  color: var(--gray-mid);
 }
 
 .btn-gps:disabled {
