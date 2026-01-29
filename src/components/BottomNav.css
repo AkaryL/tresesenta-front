@@ -77,16 +77,21 @@
 /* Tablet & Desktop */
 @media (min-width: 768px) {
   .bottom-nav {
-    max-width: 500px;
+    max-width: 600px;
     left: 50%;
     transform: translateX(-50%);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     border-left: 1px solid rgba(0, 0, 0, 0.08);
     border-right: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 0.75rem 1rem;
+  }
+
+  .nav-item {
+    gap: 0.375rem;
   }
 
   .nav-label {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
   }
 
   .create-btn {
@@ -97,5 +102,11 @@
   .create-btn svg {
     width: 26px;
     height: 26px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bottom-nav {
+    display: none;
   }
 }

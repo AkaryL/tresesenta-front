@@ -3,6 +3,8 @@
   min-height: 100vh;
   background: linear-gradient(135deg, var(--charcoal) 0%, var(--camel) 100%);
   padding-bottom: 80px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Header */
@@ -141,16 +143,62 @@
 /* Desktop */
 @media (min-width: 1024px) {
   .passport-page {
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 0;
+    background: var(--cream);
   }
 
-  .states-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+  .passport-page > .desktop-header {
+    width: 100%;
+  }
+
+  .passport-header {
+    width: 100%;
+    max-width: 1000px;
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    margin: 2rem auto 0;
+  }
+
+  .passport-title {
+    font-size: 2.5rem;
+  }
+
+  .progress-container {
+    width: 150px;
+    height: 150px;
+  }
+
+  .visited {
+    font-size: 2.5rem;
   }
 
   .passport-content {
+    max-width: 1000px;
+    width: 100%;
     padding: 2rem;
+    background: var(--cream);
+    border-radius: 20px;
+  }
+
+  .states-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.25rem;
+  }
+
+  .state-card {
+    padding: 1.25rem;
+  }
+
+  .state-name {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .states-grid {
+    grid-template-columns: repeat(6, 1fr);
   }
 }

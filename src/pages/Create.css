@@ -332,7 +332,48 @@
 
 /* Desktop */
 @media (min-width: 1024px) {
+  .create-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--cream);
+    padding: 0;
+  }
+
+  .create-header-minimal {
+    display: none;
+  }
+
   .create-content {
-    max-width: 700px;
+    max-width: 900px;
+    width: 100%;
+    margin-top: 2rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .upload-area {
+    height: 400px;
+  }
+
+  .images-preview {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .form-fields {
+    padding: 2rem;
+  }
+
+  .field-group label {
+    font-size: 1rem;
+  }
+
+  .field-group input,
+  .field-group textarea,
+  .field-group select {
+    padding: 1rem;
+    font-size: 1rem;
   }
 }

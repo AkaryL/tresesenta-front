@@ -1,75 +1,56 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import {
-  MapPin, Heart, MessageCircle, X, Navigation,
-  Coffee, Wine, Palette, Star, Globe, Trees, Utensils
+  MapPin, Heart, MessageCircle, X, Navigation, Globe
 } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
+import DesktopHeader from '../components/DesktopHeader';
 import { pinsAPI, categoriesAPI } from '../services/api';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
+import './Auth.css';
 
-// Colores de categorías según diseño Mapa 360
-const CATEGORY_COLORS = {
-  'Parques': '#7ed957',
-  'Restaurante': '#9b59b6',
-  'Vida Nocturna': '#85c1e9',
-  'Cafetería': '#f5a623',
-  'Cultura': '#e84393',
-  'Favoritos': '#f1c40f',
-  'default': '#b89b7a'
+// Import custom pin icons
+import pinParques from '../assets/pins/parques.png';
+import pinCafeteria from '../assets/pins/cafeteria.png';
+import pinRestaurantes from '../assets/pins/restaurantes.png';
+import pinVidaNocturna from '../assets/pins/vida-nocturna.png';
+import pinLugaresPublicos from '../assets/pins/lugares-publicos.png';
+import pinFavoritos from '../assets/pins/favoritos.png';
+
+// Mapeo de categorías a imágenes de pines personalizados
+const CATEGORY_PIN_IMAGES = {
+  'Parques': pinParques,
+  'Cafetería': pinCafeteria,
+  'Restaurantes': pinRestaurantes,
+  'Vida Nocturna': pinVidaNocturna,
+  'Lugares Públicos': pinLugaresPublicos,
+  'Lugares Favoritos': pinFavoritos,
+  'Favoritos': pinFavoritos,
+  'default': pinFavoritos
 };
 
-// Componentes de iconos para cada categoría
-const CATEGORY_ICON_COMPONENTS = {
-  'Parques': Trees,
-  'Restaurante': Utensils,
-  'Vida Nocturna': Wine,
-  'Cafetería': Coffee,
-  'Cultura': Palette,
-  'Favoritos': Star,
-  'default': MapPin
-};
+// Categorías fijas para los filtros del mapa
+const FIXED_CATEGORIES = [
+  { id: 'parques', name: 'Parques', icon: pinParques },
+  { id: 'cafeteria', name: 'Cafetería', icon: pinCafeteria },
+  { id: 'restaurantes', name: 'Restaurantes', icon: pinRestaurantes },
+  { id: 'vida-nocturna', name: 'Vida Nocturna', icon: pinVidaNocturna },
+  { id: 'lugares-publicos', name: 'Lugares Públicos', icon: pinLugaresPublicos },
+  { id: 'favoritos', name: 'Favoritos', icon: pinFavoritos },
+];
 
-// Función para crear marcadores coloridos personalizados con SVG de categoría
-const createCustomIcon = (color, categoryName) => {
-  // SVG paths para cada categoría
-  const iconPaths = {
-    'MONUMENTOS': 'M12 2l-8 8v12h5v-7h6v7h5V10z',
-    'NATURALEZA / CAMINOS': 'M12 2L4 8v4l8 6 8-6V8z',
-    'CAFÉS': 'M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2z',
-    'NIGHTLIFE (BARES/RESTAURANTES)': 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z',
-    'MUSEOS / EXCURSIONES': 'M12 2l-5.5 9h11z M7 13h10v8H7z',
-    'CURIOSOS': 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z',
-  };
+// Función para crear marcadores con imágenes PNG personalizadas
+const createCustomIcon = (categoryName) => {
+  const pinImage = CATEGORY_PIN_IMAGES[categoryName] || CATEGORY_PIN_IMAGES.default;
 
-  const iconPath = iconPaths[categoryName] || 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z';
-
-  return L.divIcon({
-    className: 'custom-marker-icon',
-    html: `
-      <div style="
-        background: ${color};
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: transform 0.2s;
-      ">
-        <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
-          <path d="${iconPath}"/>
-        </svg>
-      </div>
-    `,
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -36],
+  return L.icon({
+    iconUrl: pinImage,
+    iconSize: [40, 50],
+    iconAnchor: [20, 50],
+    popupAnchor: [0, -50],
+    className: 'custom-pin-marker'
   });
 };
 
@@ -125,7 +106,6 @@ const Map = () => {
 
       console.log('Categorías cargadas:', categoriesData.length);
       console.log('Pins cargados:', pinsData.length);
-      console.log('Pins con coordenadas:', pinsData.filter(p => p.latitude && p.longitude).length);
 
       setCategories(categoriesData);
       setPins(pinsData);
@@ -142,7 +122,20 @@ const Map = () => {
     setLoading(true);
     setError(null);
     try {
-      const params = categoryId !== 'all' ? { category: categoryId } : {};
+      let params = {};
+      if (categoryId !== 'all') {
+        // Buscar la categoría fija para obtener su nombre
+        const fixedCat = FIXED_CATEGORIES.find(c => c.id === categoryId);
+        if (fixedCat) {
+          // Buscar la categoría del backend que coincida por nombre
+          const backendCat = categories.find(c =>
+            (c.name_es || c.name).toLowerCase() === fixedCat.name.toLowerCase()
+          );
+          if (backendCat) {
+            params = { category: backendCat.id };
+          }
+        }
+      }
       const response = await pinsAPI.getAll(params);
       setPins(response.data.pins || []);
     } catch (error) {
@@ -245,13 +238,6 @@ const Map = () => {
     return [19.4326, -99.1332]; // CDMX default
   };
 
-  const getCategoryColor = (categoryName) => {
-    return CATEGORY_COLORS[categoryName] || CATEGORY_COLORS.default;
-  };
-
-  const getCategoryIconComponent = (categoryName) => {
-    return CATEGORY_ICON_COMPONENTS[categoryName] || CATEGORY_ICON_COMPONENTS.default;
-  };
 
   const handleShare = (pin) => {
     if (pin.latitude && pin.longitude) {
@@ -264,7 +250,10 @@ const Map = () => {
 
   return (
     <div className="map-page">
-      {/* Header */}
+      {/* Desktop Header */}
+      <DesktopHeader />
+
+      {/* Mobile Header */}
       <div className="map-header-minimal">
         <div>
           <h1>Descubre</h1>
@@ -295,20 +284,16 @@ const Map = () => {
           <Globe size={18} strokeWidth={2} className="chip-icon" />
           <span className="chip-text">Todos</span>
         </button>
-        {categories.map(cat => {
-          const categoryName = cat.name_es || cat.name;
-          const IconComponent = getCategoryIconComponent(categoryName);
-          return (
-            <button
-              key={cat.id}
-              className={`filter-chip ${selectedCategory === cat.id ? 'active' : ''}`}
-              onClick={() => handleCategoryChange(cat.id)}
-            >
-              <IconComponent size={18} strokeWidth={2} className="chip-icon" />
-              <span className="chip-text">{categoryName}</span>
-            </button>
-          );
-        })}
+        {FIXED_CATEGORIES.map(cat => (
+          <button
+            key={cat.id}
+            className={`filter-chip ${selectedCategory === cat.id ? 'active' : ''}`}
+            onClick={() => handleCategoryChange(cat.id)}
+          >
+            <img src={cat.icon} alt={cat.name} className="chip-pin-icon" />
+            <span className="chip-text">{cat.name}</span>
+          </button>
+        ))}
       </div>
 
       {/* Content */}
@@ -367,15 +352,13 @@ const Map = () => {
                   />
                   <RecenterMap pins={validPins} />
                   {validPins.map((pin) => {
-                    const category = categories.find(c => c.id === pin.category_id);
-                    const categoryName = category?.name_es || category?.name || 'default';
-                    const color = getCategoryColor(categoryName);
+                    const categoryName = pin.category_name_es || pin.category_name || 'default';
 
                     return (
                       <Marker
                         key={pin.id}
                         position={[pin.latitude, pin.longitude]}
-                        icon={createCustomIcon(color, categoryName)}
+                        icon={createCustomIcon(categoryName)}
                         eventHandlers={{
                           click: () => setSelectedPin(pin),
                         }}

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ChevronDown } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
+import DesktopHeader from '../components/DesktopHeader';
 import { citiesAPI } from '../services/api';
 import './Passport.css';
+import './Auth.css';
 
 const MEXICAN_STATES = [
   { name: 'Aguascalientes', code: 'AGS' },
@@ -71,7 +73,10 @@ const Passport = () => {
 
   return (
     <div className="passport-page">
-      {/* Header */}
+      {/* Desktop Header */}
+      <DesktopHeader />
+
+      {/* Mobile Header */}
       <div className="passport-header">
         <h1 className="passport-title">Mi Pasaporte</h1>
         <p className="passport-subtitle">Explora los 32 estados de México</p>

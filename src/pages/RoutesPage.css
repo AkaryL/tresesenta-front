@@ -2,6 +2,8 @@
   min-height: 100vh;
   background: white;
   padding-bottom: 80px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Minimal Header - Airbnb Style */
@@ -271,5 +273,61 @@
 
   .modal-content {
     padding: 1.5rem;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .routes-page {
+    padding: 0;
+    padding-bottom: 0;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .routes-page > .desktop-header {
+    width: 100%;
+  }
+
+  .routes-header-minimal {
+    display: none;
+  }
+
+  .routes-content {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .routes-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  .route-card {
+    border-radius: 16px;
+  }
+
+  .route-image {
+    height: 240px;
+  }
+
+  .route-content {
+    padding: 1.75rem;
+  }
+
+  .route-title {
+    font-size: 1.375rem;
+  }
+
+  .route-description {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .routes-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }

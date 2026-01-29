@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import BottomNav from '../components/BottomNav';
+import DesktopHeader from '../components/DesktopHeader';
 import './RoutesPage.css';
+import './Auth.css';
 
 const FEATURED_ROUTES = [
   {
@@ -78,7 +80,10 @@ const RoutesPage = () => {
 
   return (
     <div className="routes-page">
-      {/* Minimal Header - Airbnb Style */}
+      {/* Desktop Header */}
+      <DesktopHeader />
+
+      {/* Mobile Header */}
       <div className="routes-header-minimal">
         <h1>Rutas</h1>
       </div>

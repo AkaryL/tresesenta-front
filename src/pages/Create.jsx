@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, MapPin, Upload, Image as ImageIcon } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
+import DesktopHeader from '../components/DesktopHeader';
 import { pinsAPI, categoriesAPI, citiesAPI, uploadAPI } from '../services/api';
 import './Create.css';
+import './Auth.css';
 
 const SHOE_MODELS = [
   { value: 'dama-beige', label: 'Dama Beige' },
@@ -143,7 +145,10 @@ const Create = () => {
 
   return (
     <div className="create-page">
-      {/* Minimal Header */}
+      {/* Desktop Header */}
+      <DesktopHeader />
+
+      {/* Mobile Header */}
       <div className="create-header-minimal">
         <button className="btn-back" onClick={() => navigate('/map')}>
           <X size={24} />

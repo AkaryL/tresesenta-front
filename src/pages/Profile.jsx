@@ -3,9 +3,19 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Plus, Heart, Route, Gift, ChevronRight, Award } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
+import DesktopHeader from '../components/DesktopHeader';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import './Profile.css';
+import './Auth.css';
+
+// Import insignias
+import selloRaicesEternas from '../assets/insignias/sello-raices-eternas.png';
+import selloCaminoReal from '../assets/insignias/sello-camino-real.png';
+import selloDesiertoYMar from '../assets/insignias/sello-desierto-y-mar.png';
+import selloCorazonDelPais from '../assets/insignias/sello-corazon-del-pais.png';
+import selloHuastecaMagica from '../assets/insignias/sello-huasteca-magica.png';
+import selloMarDelCortes from '../assets/insignias/sello-mar-del-cortes.png';
 
 const LEVELS = [
   { name: 'Explorador Novato', min: 0, max: 5000 },
@@ -24,14 +34,14 @@ const PROFILE_COLORS = [
   { id: 'olive', bg: '#343316', wave: '#44431D', textColor: '#ffffff' },
 ];
 
-// Medallas de ejemplo (en produccion vendrian del backend)
+// Insignias de ejemplo (en produccion vendrian del backend)
 const SAMPLE_BADGES = [
-  { id: 1, name: 'Sello Mayab', state: 'Yucatan', image: null, unlocked: true },
-  { id: 2, name: 'Raices Eternas', state: 'Oaxaca', image: null, unlocked: true },
-  { id: 3, name: 'Ruta Completa', state: 'Nacional', image: null, unlocked: true },
-  { id: 4, name: 'Desierto y Mar', state: 'Sonora', image: null, unlocked: true },
-  { id: 5, name: 'Camino Real', state: 'Queretaro', image: null, unlocked: false },
-  { id: 6, name: 'Capital Viva', state: 'CDMX', image: null, unlocked: false },
+  { id: 1, name: 'Raíces Eternas', state: 'Oaxaca', image: selloRaicesEternas, unlocked: true },
+  { id: 2, name: 'Camino Real', state: 'Querétaro', image: selloCaminoReal, unlocked: true },
+  { id: 3, name: 'Desierto y Mar', state: 'Sonora', image: selloDesiertoYMar, unlocked: true },
+  { id: 4, name: 'Corazón del País', state: 'CDMX', image: selloCorazonDelPais, unlocked: true },
+  { id: 5, name: 'Huasteca Mágica', state: 'San Luis Potosí', image: selloHuastecaMagica, unlocked: false },
+  { id: 6, name: 'Mar del Cortés', state: 'Baja California', image: selloMarDelCortes, unlocked: false },
 ];
 
 const Profile = () => {
@@ -76,9 +86,12 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
+      {/* Desktop Header */}
+      <DesktopHeader />
+
       {/* Pasaporte Header */}
       <div
-        className="passport-header"
+        className="profile-header-section"
         style={{ backgroundColor: currentColorScheme.bg }}
       >
         {/* Ondas decorativas */}
@@ -157,12 +170,12 @@ const Profile = () => {
           )}
         </div>
 
-        {/* Medallas Section */}
+        {/* Insignias Section */}
         <div className="badges-section">
           <button className="badges-header" onClick={() => navigate('/badges')}>
             <div className="badges-title">
               <Award size={18} />
-              <span>MEDALLAS</span>
+              <span>INSIGNIAS</span>
               <span className="badges-count">({unlockedBadges}/{totalBadges})</span>
             </div>
             <ChevronRight size={20} />
@@ -175,8 +188,8 @@ const Profile = () => {
                 className={`badge-item ${badge.unlocked ? '' : 'locked'}`}
               >
                 <div className="badge-circle">
-                  {badge.unlocked ? (
-                    <span className="badge-emoji">🏅</span>
+                  {badge.image ? (
+                    <img src={badge.image} alt={badge.name} className="badge-image" />
                   ) : (
                     <span className="badge-locked">?</span>
                   )}
