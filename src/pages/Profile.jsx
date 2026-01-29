@@ -16,12 +16,12 @@ const LEVELS = [
 ];
 
 const PROFILE_COLORS = [
-  { id: 'beige', bg: '#d6cfc4', wave: '#AEAA9F' },
-  { id: 'camel', bg: '#b89b7a', wave: '#A88565' },
-  { id: 'sage', bg: '#8f9b8a', wave: '#9AA79A' },
-  { id: 'gray', bg: '#9a9a96', wave: '#747678' },
-  { id: 'steel', bg: '#7f8a92', wave: '#7F8A92' },
-  { id: 'olive', bg: '#343316', wave: '#44431D' },
+  { id: 'beige', bg: '#d6cfc4', wave: '#AEAA9F', textColor: '#4a4a48' },
+  { id: 'camel', bg: '#b89b7a', wave: '#A88565', textColor: '#ffffff' },
+  { id: 'sage', bg: '#8f9b8a', wave: '#9AA79A', textColor: '#ffffff' },
+  { id: 'gray', bg: '#9a9a96', wave: '#747678', textColor: '#ffffff' },
+  { id: 'steel', bg: '#7f8a92', wave: '#7F8A92', textColor: '#ffffff' },
+  { id: 'olive', bg: '#343316', wave: '#44431D', textColor: '#ffffff' },
 ];
 
 // Medallas de ejemplo (en produccion vendrian del backend)
@@ -100,7 +100,7 @@ const Profile = () => {
           />
         </svg>
 
-        <h1 className="passport-title">PASAPORTE 360</h1>
+        <h1 className="passport-title" style={{ color: currentColorScheme.textColor }}>PASAPORTE 360</h1>
       </div>
 
       {/* Profile Card */}

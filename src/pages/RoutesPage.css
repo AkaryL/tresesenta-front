@@ -17,7 +17,7 @@
 .routes-header-minimal h1 {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--cafe-dark);
+  color: var(--charcoal);
   margin: 0;
 }
 
@@ -74,7 +74,7 @@
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--cafe-dark);
+  color: var(--charcoal);
   backdrop-filter: blur(10px);
 }
 
@@ -85,13 +85,13 @@
 .route-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--cafe-dark);
+  color: var(--charcoal);
   margin: 0 0 0.75rem 0;
 }
 
 .route-description {
   font-size: 0.95rem;
-  color: var(--sage);
+  color: var(--gray-mid);
   margin: 0 0 1rem 0;
   line-height: 1.5;
 }
@@ -108,7 +108,7 @@
   align-items: center;
   gap: 0.25rem;
   font-size: 0.85rem;
-  color: var(--cafe-dark);
+  color: var(--charcoal);
 }
 
 .meta-icon {
@@ -118,7 +118,7 @@
 .btn-explore-route {
   width: 100%;
   padding: 0.875rem;
-  background: var(--terracota);
+  background: var(--camel);
   color: white;
   border: none;
   border-radius: 12px;
@@ -130,7 +130,7 @@
 }
 
 .btn-explore-route:hover {
-  background: var(--cafe-dark);
+  background: var(--charcoal);
   transform: translateY(-2px);
 }
 
@@ -138,8 +138,8 @@
   width: 100%;
   padding: 1.25rem;
   background: white;
-  color: var(--terracota);
-  border: 2px dashed var(--terracota);
+  color: var(--camel);
+  border: 2px dashed var(--camel);
   border-radius: 16px;
   font-size: 1.125rem;
   font-weight: 700;
@@ -149,7 +149,7 @@
 }
 
 .btn-create-route:hover {
-  background: var(--terracota);
+  background: var(--camel);
   color: white;
   border-style: solid;
   transform: translateY(-2px);
@@ -195,7 +195,7 @@
 
 .modal-close:hover {
   transform: scale(1.1);
-  background: var(--terracota);
+  background: var(--camel);
   color: white;
 }
 
@@ -213,13 +213,13 @@
 .modal-content h2 {
   font-size: 1.75rem;
   font-weight: 800;
-  color: var(--cafe-dark);
+  color: var(--charcoal);
   margin: 0 0 1rem 0;
 }
 
 .modal-content p {
   font-size: 1rem;
-  color: var(--sage);
+  color: var(--gray-mid);
   margin: 0 0 1.5rem 0;
   line-height: 1.6;
 }
@@ -237,13 +237,13 @@
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--cafe-dark);
+  color: var(--charcoal);
 }
 
 .btn-start-route {
   width: 100%;
   padding: 1rem;
-  background: var(--terracota);
+  background: var(--camel);
   color: white;
   border: none;
   border-radius: 12px;
@@ -255,7 +255,7 @@
 }
 
 .btn-start-route:hover {
-  background: var(--cafe-dark);
+  background: var(--charcoal);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }

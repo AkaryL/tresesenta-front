@@ -6,14 +6,14 @@
   align-items: center;
   justify-content: center;
   background: var(--cream);
-  color: var(--cafe-dark);
+  color: var(--charcoal);
 }
 
 .spinner {
   width: 50px;
   height: 50px;
-  border: 4px solid var(--arena);
-  border-top: 4px solid var(--terracota);
+  border: 4px solid var(--beige);
+  border-top: 4px solid var(--camel);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -23,200 +23,6 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Landing Page - Minimalista estilo Ben & Frank */
-.landing {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--cafe-dark) 0%, var(--terracota) 100%);
-  color: white;
-  position: relative;
-  overflow: hidden;
-  padding: 2rem;
-}
-
-.landing-bg-pattern {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.03;
-  background-image: radial-gradient(circle, white 1px, transparent 1px);
-  background-size: 40px 40px;
-  z-index: 0;
-}
-
-.landing-content {
-  z-index: 1;
-  text-align: center;
-  max-width: 600px;
-  animation: fadeInUp 1s ease-out;
-}
-
-.logo-container {
-  margin-bottom: 2rem;
-}
-
-.logo {
-  font-size: clamp(3rem, 8vw, 5rem);
-  font-weight: 900;
-  letter-spacing: -3px;
-  margin: 0;
-  line-height: 1;
-  animation: slideDown 0.8s ease-out;
-}
-
-.logo-sub {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
-  font-weight: 700;
-  color: var(--arena);
-  margin: 0.5rem 0 0 0;
-  letter-spacing: 1px;
-  animation: slideDown 0.8s ease-out 0.1s both;
-}
-
-.tagline {
-  font-size: clamp(1rem, 2.5vw, 1.25rem);
-  font-weight: 300;
-  opacity: 0.95;
-  font-style: italic;
-  margin: 2rem 0 3rem 0;
-  line-height: 1.6;
-  animation: fadeIn 1s ease-out 0.3s both;
-}
-
-.cta-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  animation: fadeIn 1s ease-out 0.5s both;
-}
-
-.btn-start,
-.btn-learn {
-  padding: 1.125rem 2.5rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  border-radius: 50px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: 'Inter', sans-serif;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-start {
-  background: white;
-  color: var(--terracota);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-}
-
-.btn-start:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
-}
-
-.btn-start:active {
-  transform: translateY(-1px);
-}
-
-.btn-learn {
-  background: transparent;
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-}
-
-.btn-learn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: white;
-}
-
-/* Scroll Indicator */
-.scroll-indicator {
-  position: absolute;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  animation: bounce 2s infinite;
-}
-
-.mouse {
-  width: 30px;
-  height: 50px;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 20px;
-  position: relative;
-}
-
-.mouse::before {
-  content: '';
-  width: 4px;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 2px;
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  animation: scroll 1.5s infinite;
-}
-
-/* Animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0);
-  }
-  50% {
-    transform: translateX(-50%) translateY(-10px);
-  }
-}
-
-@keyframes scroll {
-  0% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(15px);
-  }
-}
 
 /* App Container */
 .app {
@@ -229,16 +35,3 @@
   text-align: center;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .cta-buttons {
-    flex-direction: column;
-    width: 100%;
-    max-width: 300px;
-  }
-
-  .btn-start,
-  .btn-learn {
-    width: 100%;
-  }
-}
