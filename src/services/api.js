@@ -63,9 +63,47 @@ export const citiesAPI = {
   getAll: () => api.get('/cities'),
 };
 
+// Verification (user-facing)
+export const verificationAPI = {
+  addImages: (pinId, images) => api.post(`/verification/${pinId}/add-images`, { images }),
+};
+
 // Users
 export const usersAPI = {
   getByUsername: (username) => api.get(`/users/${username}`),
+};
+
+// Admin
+export const adminAPI = {
+  // Stats
+  getStats: () => api.get('/admin/stats'),
+  // Users
+  getUsers: (params) => api.get('/admin/users', { params }),
+  banUser: (id, reason) => api.post(`/admin/users/${id}/ban`, { reason }),
+  unbanUser: (id) => api.post(`/admin/users/${id}/unban`),
+  setAdmin: (id, is_admin) => api.post(`/admin/users/${id}/set-admin`, { is_admin }),
+  verifyBuyer: (id, is_verified) => api.post(`/admin/users/${id}/verify-buyer`, { is_verified }),
+  // Pins
+  getPins: (params) => api.get('/admin/pins', { params }),
+  hidePin: (id, reason) => api.post(`/admin/pins/${id}/hide`, { reason }),
+  unhidePin: (id) => api.post(`/admin/pins/${id}/unhide`),
+  // Badges
+  getBadges: () => api.get('/admin/badges'),
+  createBadge: (data) => api.post('/admin/badges', data),
+  updateBadge: (id, data) => api.put(`/admin/badges/${id}`, data),
+  // Point Actions
+  getPointActions: () => api.get('/admin/point-actions'),
+  updatePointAction: (id, data) => api.put(`/admin/point-actions/${id}`, data),
+  // Settings
+  getSettings: (category) => api.get('/admin/settings', { params: category ? { category } : {} }),
+  updateSetting: (key, value) => api.put(`/admin/settings/${key}`, { value }),
+  // Moderation Logs
+  getLogs: (params) => api.get('/admin/moderation-logs', { params }),
+  // Verification
+  getPendingVerifications: (params) => api.get('/verification/pending', { params }),
+  getAllVerifications: (params) => api.get('/verification/all', { params }),
+  approveVerification: (id, notes) => api.post(`/verification/${id}/approve`, { notes }),
+  rejectVerification: (id, reason) => api.post(`/verification/${id}/reject`, { reason }),
 };
 
 export default api;

@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Plus, Heart, Route, Gift, ChevronRight, Award } from 'lucide-react';
+import { LogOut, Plus, Heart, Route, Gift, ChevronRight, Award, ShoppingBag, Shield } from 'lucide-react';
+
+const AdminDashboard = lazy(() => import('../components/admin/AdminDashboard'));
 import BottomNav from '../components/BottomNav';
 import DesktopHeader from '../components/DesktopHeader';
 import { useAuth } from '../context/AuthContext';
@@ -47,8 +49,48 @@ const SAMPLE_BADGES = [
 const Profile = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [selectedColor, setSelectedColor] = useState('olive');
+  const [selectedColor, setSelectedColor] = useState(() => localStorage.getItem('passport_color') || 'olive');
+  const [activeTab, setActiveTab] = useState('passport');
   const [badges, setBadges] = useState(SAMPLE_BADGES);
+  const [orders, setOrders] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await authAPI.myOrders();
+        const data = response.data;
+        setOrders(data.orders || []);
+        setStats(data.stats || null);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+    if (user) fetchOrders();
+    else setLoadingOrders(false);
+  }, [user]);
+
+  // Extraer todos los productos de las órdenes para la colección
+  const collectionProducts = orders.flatMap(order =>
+    order.items.map(item => ({
+      id: `${order.order_id}-${item.product_id}-${item.variant_title}`,
+      title: item.title,
+      variant: item.variant_title,
+      image: item.image,
+      price: item.price,
+      date: order.created_at,
+    }))
+  );
+
+  const formatMemberSince = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
 
   const userPoints = user?.total_points || 36000;
   const unlockedBadges = badges.filter(b => b.unlocked).length;
@@ -89,6 +131,31 @@ const Profile = () => {
       {/* Desktop Header */}
       <DesktopHeader />
 
+      {/* Admin Tab Toggle - only for admin users */}
+      {user?.is_admin && (
+        <div className="admin-tab-toggle">
+          <button
+            className={`tab-btn ${activeTab === 'passport' ? 'active' : ''}`}
+            onClick={() => setActiveTab('passport')}
+          >
+            Pasaporte
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+            onClick={() => setActiveTab('admin')}
+          >
+            <Shield size={14} />
+            Admin
+          </button>
+        </div>
+      )}
+
+      {activeTab === 'admin' && user?.is_admin ? (
+        <Suspense fallback={<div className="admin-loading">Cargando panel...</div>}>
+          <AdminDashboard />
+        </Suspense>
+      ) : (
+      <>
       {/* Pasaporte Header */}
       <div
         className="profile-header-section"
@@ -133,6 +200,11 @@ const Profile = () => {
           <div className="profile-details">
             <h2 className="profile-name">{user?.full_name || 'NOMBRE DE USUARIO'}</h2>
             <p className="profile-username">@{user?.username || 'user-name'}</p>
+            {stats && (
+              <p className="profile-subtitle">
+                Desde {formatMemberSince(stats.member_since)} · {stats.orders_count} {stats.orders_count === 1 ? 'pedido' : 'pedidos'}
+              </p>
+            )}
           </div>
         </div>
 
@@ -200,6 +272,60 @@ const Profile = () => {
           </div>
         </div>
 
+        {/* Mi Colección 360 */}
+        <div className="collection-section">
+          <div className="collection-header">
+            <div className="collection-title">
+              <ShoppingBag size={18} />
+              <span>MI COLECCION 360</span>
+              {collectionProducts.length > 0 && (
+                <span className="collection-count">({collectionProducts.length})</span>
+              )}
+            </div>
+          </div>
+
+          {loadingOrders ? (
+            <div className="collection-loading">
+              <div className="collection-skeleton" />
+              <div className="collection-skeleton" />
+              <div className="collection-skeleton" />
+            </div>
+          ) : collectionProducts.length > 0 ? (
+            <div className="collection-grid">
+              {collectionProducts.map((product) => (
+                <motion.div
+                  key={product.id}
+                  className="collection-item"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="collection-img-wrapper">
+                    {product.image ? (
+                      <img src={product.image} alt={product.title} />
+                    ) : (
+                      <div className="collection-img-placeholder">
+                        <ShoppingBag size={24} strokeWidth={1} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="collection-item-info">
+                    <span className="collection-item-name">{product.title}</span>
+                    {product.variant && (
+                      <span className="collection-item-variant">{product.variant}</span>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="collection-empty">
+              <ShoppingBag size={32} strokeWidth={1} />
+              <p>Tus compras de Tresesenta apareceran aqui</p>
+            </div>
+          )}
+        </div>
+
         {/* Menu Actions */}
         <div className="profile-menu">
           {menuItems.map((item, index) => (
@@ -223,7 +349,7 @@ const Profile = () => {
                 key={color.id}
                 className={`color-option ${selectedColor === color.id ? 'selected' : ''}`}
                 style={{ backgroundColor: color.bg }}
-                onClick={() => setSelectedColor(color.id)}
+                onClick={() => { setSelectedColor(color.id); localStorage.setItem('passport_color', color.id); }}
               >
                 {/* Onda decorativa en miniatura */}
                 <svg viewBox="0 0 40 40" className="color-wave-preview">
@@ -244,6 +370,8 @@ const Profile = () => {
           <span>Cerrar Sesion</span>
         </button>
       </div>
+      </>
+      )}
 
       <BottomNav />
     </div>
