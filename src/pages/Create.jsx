@@ -248,11 +248,20 @@ const Create = () => {
         }
       }
 
-      // Create pin
-      const pinResponse = await pinsAPI.create({
-        ...formData,
+      // Create pin - clean up empty values
+      const pinData = {
+        title: formData.title,
+        description: formData.description,
+        latitude: parseFloat(formData.latitude),
+        longitude: parseFloat(formData.longitude),
+        category_id: parseInt(formData.category_id),
         image_urls: imageUrls,
-      });
+        used_tresesenta: formData.used_tresesenta,
+      };
+      if (formData.city_id) pinData.city_id = parseInt(formData.city_id);
+      if (formData.shoe_model) pinData.shoe_model = formData.shoe_model;
+
+      const pinResponse = await pinsAPI.create(pinData);
 
       const createdPin = pinResponse.data.pin;
 
