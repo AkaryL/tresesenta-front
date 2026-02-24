@@ -246,6 +246,8 @@ const Profile = () => {
           )}
         </div>
 
+        {/* Badges + Collection (side by side on desktop) */}
+        <div className="profile-desktop-grid">
         {/* Insignias Section */}
         <div className="badges-section">
           <button className="badges-header" onClick={() => navigate('/badges')}>
@@ -331,6 +333,7 @@ const Profile = () => {
             </div>
           )}
         </div>
+        </div>{/* end profile-desktop-grid */}
 
         {/* Menu Actions */}
         <div className="profile-menu">

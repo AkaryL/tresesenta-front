@@ -8,6 +8,7 @@ import Passport from './pages/Passport'
 import Profile from './pages/Profile'
 import RoutesPage from './pages/RoutesPage'
 import Create from './pages/Create'
+import Badges from './pages/Badges'
 import './App.css'
 
 function App() {
@@ -38,7 +39,7 @@ function App() {
       />
       <Route
         path="/passport"
-        element={isAuthenticated ? <Passport /> : <Navigate to="/login" />}
+        element={isAuthenticated ? <Badges /> : <Navigate to="/login" />}
       />
       <Route
         path="/profile"
@@ -51,6 +52,10 @@ function App() {
       <Route
         path="/create"
         element={isAuthenticated ? <Create /> : <Navigate to="/login" />}
+      />
+      <Route
+        path="/badges"
+        element={isAuthenticated ? <Badges /> : <Navigate to="/login" />}
       />
     </Routes>
   )

@@ -1,0 +1,566 @@
+/* ========================================
+   BADGES PAGE
+   ======================================== */
+.badges-page {
+  min-height: 100vh;
+  background: var(--cream);
+  padding-bottom: 100px;
+}
+
+/* ---- Hero (desktop) ---- */
+.badges-hero {
+  display: none;
+}
+
+/* ---- Mobile Header ---- */
+.badges-header-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: white;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.badges-header-mobile h1 {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0;
+}
+
+.btn-back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--charcoal);
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.btn-back:hover {
+  background: var(--cream);
+}
+
+/* ---- Content ---- */
+.badges-content {
+  padding: 1.25rem 1rem;
+}
+
+/* ---- Summary with donut chart ---- */
+.badges-summary {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.summary-donut {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.donut-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.donut-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut-number {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--black);
+}
+
+.donut-total {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--gray-mid);
+}
+
+.summary-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.summary-text {
+  font-size: 0.8125rem;
+  color: var(--charcoal);
+  margin: 0 0 0.5rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.summary-bar {
+  height: 5px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.375rem;
+}
+
+.summary-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--camel), var(--brown));
+  border-radius: 3px;
+  transition: width 1s ease-out;
+}
+
+.summary-percent {
+  font-size: 0.6875rem;
+  color: var(--gray-mid);
+  font-weight: 500;
+}
+
+/* ---- Badge Grid ---- */
+.badges-grid-full {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+/* ---- Badge Card ---- */
+.badge-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem;
+  background: white;
+  border-radius: 14px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  position: relative;
+}
+
+.badge-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.badge-card.unlocked {
+  border-color: rgba(184, 155, 122, 0.25);
+}
+
+.badge-card.unlocked:hover {
+  border-color: var(--camel);
+}
+
+.badge-card.locked {
+  opacity: 1;
+}
+
+.badge-card.locked:hover {
+  opacity: 1;
+}
+
+/* ---- Badge Image ---- */
+.badge-image-container {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.badge-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Locked badges: grayscale + dimmed */
+.badge-img-locked {
+  filter: grayscale(1) brightness(0.85);
+  opacity: 0.55;
+}
+
+.badge-emoji-display {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.badge-emoji-locked {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
+.badge-emoji-display-lg {
+  font-size: 4rem;
+  line-height: 1;
+}
+
+.badge-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--beige);
+  background: var(--cream);
+  border-radius: 50%;
+}
+
+.badge-card-name {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--black);
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.badge-card.locked .badge-card-name {
+  color: var(--gray-mid);
+}
+
+.badge-card-state {
+  font-size: 0.5625rem;
+  color: var(--camel);
+  font-weight: 500;
+  text-transform: capitalize;
+  background: rgba(184, 155, 122, 0.1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 8px;
+}
+
+/* ---- Tooltip ---- */
+.badge-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--charcoal);
+  color: white;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.375rem 0.625rem;
+  border-radius: 8px;
+  white-space: normal;
+  max-width: 180px;
+  text-align: center;
+  line-height: 1.3;
+  z-index: 50;
+  pointer-events: none;
+  animation: tooltipFadeIn 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.badge-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--charcoal);
+}
+
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ========================================
+   BADGE DETAIL MODAL
+   ======================================== */
+.badge-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: badgeFadeIn 0.2s ease;
+}
+
+@keyframes badgeFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.badge-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem 1.75rem;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: badgeSlideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes badgeSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--cream);
+  border: none;
+  color: var(--charcoal);
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: var(--beige);
+}
+
+.badge-modal-image {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.badge-modal-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.badge-modal-locked {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+  border-radius: 50%;
+  color: var(--beige);
+}
+
+.badge-modal-name {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0 0 0.25rem;
+}
+
+.badge-modal-state {
+  font-size: 0.75rem;
+  color: var(--camel);
+  margin: 0 0 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.badge-modal-description {
+  font-size: 0.875rem;
+  color: var(--gray-mid);
+  line-height: 1.5;
+  margin: 0 0 1.25rem;
+}
+
+.badge-modal-points {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--camel);
+  margin: 0 0 1rem;
+}
+
+.badge-modal-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.badge-modal-status.unlocked {
+  background: rgba(184, 155, 122, 0.15);
+  color: var(--camel);
+}
+
+.badge-modal-status.locked {
+  background: var(--cream);
+  color: var(--gray-mid);
+}
+
+.badge-modal-date {
+  margin-left: 8px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* ========================================
+   DESKTOP
+   ======================================== */
+@media (min-width: 1024px) {
+  .badges-page {
+    padding-bottom: 0;
+  }
+
+  .badges-page .bottom-nav {
+    display: none !important;
+  }
+
+  .badges-header-mobile {
+    display: none;
+  }
+
+  .badges-hero {
+    display: block;
+    background: linear-gradient(135deg, var(--charcoal), #2a2a2a);
+    padding: 0 0 4rem;
+    position: relative;
+  }
+
+  .badges-hero-content {
+    text-align: center;
+    padding: 3rem 2rem 0;
+  }
+
+  .badges-hero-brand {
+    display: block;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--camel);
+    margin-bottom: 0.5rem;
+  }
+
+  .badges-hero-title {
+    font-family: var(--font-heading);
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 0.5rem;
+  }
+
+  .badges-hero-description {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Content pulls up over hero */
+  .badges-content {
+    max-width: 960px;
+    margin: -2rem auto 3rem;
+    padding: 0 2rem;
+    position: relative;
+    z-index: 10;
+  }
+
+  .badges-summary {
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    gap: 1.75rem;
+  }
+
+  .summary-donut {
+    width: 88px;
+    height: 88px;
+  }
+
+  .donut-number {
+    font-size: 1.5rem;
+  }
+
+  .summary-text {
+    font-size: 0.9375rem;
+  }
+
+  .badges-grid-full {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+  }
+
+  .badge-card {
+    padding: 1.25rem 0.75rem;
+    border-radius: 16px;
+  }
+
+  .badge-image-container {
+    width: 80px;
+    height: 80px;
+  }
+
+  .badge-card-name {
+    font-size: 0.75rem;
+  }
+
+  .badge-tooltip {
+    max-width: 200px;
+    font-size: 0.75rem;
+  }
+
+  .badge-modal {
+    max-width: 420px;
+    padding: 2.5rem 2rem;
+  }
+
+  .badge-modal-image {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .badges-grid-full {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .badges-content {
+    max-width: 1100px;
+  }
+}

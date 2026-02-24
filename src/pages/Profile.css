@@ -598,32 +598,52 @@
 
 @media (min-width: 1024px) {
   .profile-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0;
+    padding-bottom: 0;
   }
 
+  .profile-page .bottom-nav {
+    display: none !important;
+  }
+
+  /* Header banner centrado y redondeado */
   .profile-header-section {
-    padding: 3rem 2rem 5rem;
-    width: 100%;
-    max-width: 800px;
-    border-radius: 20px;
-    margin-top: 2rem;
+    max-width: 900px;
+    margin: 1.5rem auto 0;
+    padding: 3rem 2rem 4.5rem;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+  }
+
+  .passport-waves {
+    height: 70px;
   }
 
   .passport-title {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
+    letter-spacing: 0.2em;
   }
 
+  /* Admin tab toggle centrado */
+  .admin-tab-toggle {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0.75rem;
+  }
+
+  /* Card principal ancha y centrada */
   .profile-card {
-    max-width: 800px;
-    padding: 2.5rem;
-    margin-top: -3rem;
+    max-width: 900px;
+    margin: -2.5rem auto 3rem;
+    padding: 2.5rem 3rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   }
 
+  /* Avatar mas grande */
   .profile-info-section {
     gap: 2rem;
+    margin-bottom: 2rem;
   }
 
   .profile-avatar {
@@ -631,13 +651,43 @@
     height: 100px;
   }
 
+  .profile-avatar span {
+    font-size: 2.25rem;
+  }
+
   .profile-name {
     font-size: 1.25rem;
   }
 
+  .profile-username {
+    font-size: 0.9375rem;
+  }
+
+  /* Points bar mas ancha */
+  .points-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  .points-bar {
+    height: 10px;
+  }
+
+  /* Badges + Collection lado a lado */
+  .profile-desktop-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .badges-section {
+    margin-bottom: 0;
+  }
+
   .badges-grid {
-    grid-template-columns: repeat(6, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
   }
 
   .badge-circle {
@@ -649,8 +699,106 @@
     font-size: 2rem;
   }
 
+  .collection-section {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
   .collection-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  /* Menu como fila horizontal de cards */
+  .profile-menu {
+    display: grid;
     grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--gray-light);
+  }
+
+  .menu-item {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1.125rem 0.75rem;
+    border: 1px solid var(--gray-light);
+    border-radius: 12px;
+    border-bottom: 1px solid var(--gray-light);
+    text-align: center;
+  }
+
+  .menu-item:last-child {
+    border-bottom: 1px solid var(--gray-light);
+  }
+
+  .menu-item:hover {
+    margin: 0;
+    padding: 1.125rem 0.75rem;
+    background: var(--cream);
+    border-color: var(--beige);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  .menu-item .menu-arrow {
+    display: none;
+  }
+
+  .menu-label {
+    font-size: 0.8125rem;
+  }
+
+  /* Color selector horizontal */
+  .color-selector {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .color-label {
+    margin-bottom: 0;
+    white-space: nowrap;
+  }
+
+  .color-options {
+    flex-wrap: nowrap;
+  }
+
+  .btn-logout {
+    max-width: 260px;
+    margin: 0 auto;
+  }
+}
+
+/* ========================================
+   LARGE DESKTOP
+   ======================================== */
+@media (min-width: 1440px) {
+  .profile-header-section {
+    max-width: 1060px;
+  }
+
+  .profile-card {
+    max-width: 1060px;
+    padding: 3rem 3.5rem;
+  }
+
+  .badges-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .collection-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .profile-menu {
     gap: 1rem;
   }
 }
