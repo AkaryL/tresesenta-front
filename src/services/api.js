@@ -73,6 +73,20 @@ export const usersAPI = {
   getByUsername: (username) => api.get(`/users/${username}`),
 };
 
+// Routes
+export const routesAPI = {
+  getAll: (params) => api.get('/routes', { params }),
+  getById: (id) => api.get(`/routes/${id}`),
+};
+
+// Badges
+export const badgesAPI = {
+  getAll: (params) => api.get('/badges', { params }),
+  getMine: () => api.get('/badges/me'),
+  getById: (id) => api.get(`/badges/${id}`),
+  getCategories: () => api.get('/badges/categories'),
+};
+
 // Admin
 export const adminAPI = {
   // Stats

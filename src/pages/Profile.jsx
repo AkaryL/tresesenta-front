@@ -7,17 +7,9 @@ const AdminDashboard = lazy(() => import('../components/admin/AdminDashboard'));
 import BottomNav from '../components/BottomNav';
 import DesktopHeader from '../components/DesktopHeader';
 import { useAuth } from '../context/AuthContext';
-import { authAPI } from '../services/api';
+import { authAPI, badgesAPI } from '../services/api';
 import './Profile.css';
 import './Auth.css';
-
-// Import insignias
-import selloRaicesEternas from '../assets/insignias/sello-raices-eternas.png';
-import selloCaminoReal from '../assets/insignias/sello-camino-real.png';
-import selloDesiertoYMar from '../assets/insignias/sello-desierto-y-mar.png';
-import selloCorazonDelPais from '../assets/insignias/sello-corazon-del-pais.png';
-import selloHuastecaMagica from '../assets/insignias/sello-huasteca-magica.png';
-import selloMarDelCortes from '../assets/insignias/sello-mar-del-cortes.png';
 
 const LEVELS = [
   { name: 'Explorador Novato', min: 0, max: 5000 },
@@ -36,22 +28,14 @@ const PROFILE_COLORS = [
   { id: 'olive', bg: '#343316', wave: '#44431D', textColor: '#ffffff' },
 ];
 
-// Insignias de ejemplo (en produccion vendrian del backend)
-const SAMPLE_BADGES = [
-  { id: 1, name: 'Raíces Eternas', state: 'Oaxaca', image: selloRaicesEternas, unlocked: true },
-  { id: 2, name: 'Camino Real', state: 'Querétaro', image: selloCaminoReal, unlocked: true },
-  { id: 3, name: 'Desierto y Mar', state: 'Sonora', image: selloDesiertoYMar, unlocked: true },
-  { id: 4, name: 'Corazón del País', state: 'CDMX', image: selloCorazonDelPais, unlocked: true },
-  { id: 5, name: 'Huasteca Mágica', state: 'San Luis Potosí', image: selloHuastecaMagica, unlocked: false },
-  { id: 6, name: 'Mar del Cortés', state: 'Baja California', image: selloMarDelCortes, unlocked: false },
-];
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [selectedColor, setSelectedColor] = useState(() => localStorage.getItem('passport_color') || 'olive');
   const [activeTab, setActiveTab] = useState('passport');
-  const [badges, setBadges] = useState(SAMPLE_BADGES);
+  const [badges, setBadges] = useState([]);
+  const [totalBadgesCount, setTotalBadgesCount] = useState(0);
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -72,6 +56,26 @@ const Profile = () => {
     if (user) fetchOrders();
     else setLoadingOrders(false);
   }, [user]);
+
+  useEffect(() => {
+    const fetchBadges = async () => {
+      try {
+        const response = await badgesAPI.getAll();
+        const allBadges = response.data.badges || [];
+        setTotalBadgesCount(allBadges.length);
+        setBadges(allBadges.map(b => ({
+          id: b.id,
+          name: b.name_es || b.name,
+          image: b.image_url,
+          emoji: b.emoji,
+          unlocked: !!b.earned,
+        })));
+      } catch (error) {
+        console.error('Error fetching badges:', error);
+      }
+    };
+    fetchBadges();
+  }, []);
 
   // Extraer todos los productos de las órdenes para la colección
   const collectionProducts = orders.flatMap(order =>
@@ -94,7 +98,7 @@ const Profile = () => {
 
   const userPoints = user?.total_points || 36000;
   const unlockedBadges = badges.filter(b => b.unlocked).length;
-  const totalBadges = 32;
+  const totalBadges = totalBadgesCount || badges.length;
 
   const getLevelInfo = (points) => {
     for (let i = 0; i < LEVELS.length; i++) {
@@ -260,8 +264,10 @@ const Profile = () => {
                 className={`badge-item ${badge.unlocked ? '' : 'locked'}`}
               >
                 <div className="badge-circle">
-                  {badge.image ? (
+                  {badge.unlocked && badge.image ? (
                     <img src={badge.image} alt={badge.name} className="badge-image" />
+                  ) : badge.unlocked && badge.emoji ? (
+                    <span style={{ fontSize: '1.5rem' }}>{badge.emoji}</span>
                   ) : (
                     <span className="badge-locked">?</span>
                   )}
