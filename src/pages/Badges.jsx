@@ -86,6 +86,20 @@ const Badges = () => {
 
   useEffect(() => {
     const fetchBadges = async () => {
+      if (isPassport) {
+        // /passport -> show local geographical stamps (sellos)
+        setBadges(LOCAL_BADGES.map((b, index) => ({
+          id: index + 1,
+          name: b.name,
+          description: b.description,
+          image: b.image,
+          unlocked: false,
+        })));
+        setLoading(false);
+        return;
+      }
+
+      // /badges -> show API badges (insignias) with local images as fallback
       try {
         const response = await badgesAPI.getAll();
         const data = response.data.badges || [];
@@ -104,7 +118,6 @@ const Badges = () => {
             geographic_scope: b.geographic_scope,
           })));
         } else {
-          // API returned empty, use local badges
           setBadges(LOCAL_BADGES.map((b, index) => ({
             id: index + 1,
             name: b.name,
@@ -115,7 +128,6 @@ const Badges = () => {
         }
       } catch (error) {
         console.error('Error fetching badges:', error);
-        // API failed, use local badges as fallback
         setBadges(LOCAL_BADGES.map((b, index) => ({
           id: index + 1,
           name: b.name,
@@ -128,7 +140,7 @@ const Badges = () => {
       }
     };
     fetchBadges();
-  }, []);
+  }, [isPassport]);
 
   const unlockedCount = badges.filter(b => b.unlocked).length;
   const totalCount = badges.length || 0;
