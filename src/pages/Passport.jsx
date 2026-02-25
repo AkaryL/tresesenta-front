@@ -1,11 +1,26 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Check, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Check, ChevronDown, MapPin } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import DesktopHeader from '../components/DesktopHeader';
 import { citiesAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Passport.css';
 import './Auth.css';
+
+// Map cities to their Mexican states
+const CITY_TO_STATE = {
+  'CDMX': 'CDMX',
+  'Guadalajara': 'Jalisco',
+  'Monterrey': 'Nuevo León',
+  'Puebla': 'Puebla',
+  'Querétaro': 'Querétaro',
+  'Oaxaca': 'Oaxaca',
+  'Mérida': 'Yucatán',
+  'Puerto Vallarta': 'Jalisco',
+  'Guanajuato': 'Guanajuato',
+  'Morelia': 'Michoacán',
+};
 
 const MEXICAN_STATES = [
   { name: 'Aguascalientes', code: 'AGS' },
@@ -43,9 +58,12 @@ const MEXICAN_STATES = [
 ];
 
 const Passport = () => {
+  const { user } = useAuth();
   const [cities, setCities] = useState([]);
-  const [visitedCities, setVisitedCities] = useState(['Ciudad de México', 'Guadalajara', 'Monterrey']);
+  const [visitedStates, setVisitedStates] = useState(new Set());
+  const [stateCities, setStateCities] = useState({});
   const [expandedState, setExpandedState] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadCities();
@@ -54,29 +72,53 @@ const Passport = () => {
   const loadCities = async () => {
     try {
       const response = await citiesAPI.getAll();
-      setCities(response.data);
+      const citiesData = response.data.cities || response.data || [];
+      setCities(citiesData);
+
+      // Build visited states set and state->cities map
+      const visited = new Set();
+      const cityMap = {};
+
+      citiesData.forEach(city => {
+        const stateName = CITY_TO_STATE[city.name];
+        if (stateName) {
+          if (!cityMap[stateName]) cityMap[stateName] = [];
+          cityMap[stateName].push({
+            name: city.name,
+            emoji: city.emoji,
+            visited: !!city.visited,
+            pinsCount: city.user_pins_count || 0,
+            totalPins: parseInt(city.pins_count) || 0,
+          });
+          if (city.visited) {
+            visited.add(stateName);
+          }
+        }
+      });
+
+      setVisitedStates(visited);
+      setStateCities(cityMap);
     } catch (error) {
       console.error('Error loading cities:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const totalStates = MEXICAN_STATES.length;
-  const visitedStates = MEXICAN_STATES.filter(state =>
-    visitedCities.length > 0
-  ).length;
-  const visitedCount = visitedCities.length;
-  const progress = (visitedCount / 100) * 100; // Assuming ~100 cities goal
+  const visitedCount = visitedStates.size;
+  const progress = totalStates > 0 ? (visitedCount / totalStates) * 100 : 0;
 
-  const isStateVisited = (stateName) => {
-    return visitedCities.length > 0;
-  };
+  const isStateVisited = (stateName) => visitedStates.has(stateName);
+  const hasAvailableCities = (stateName) => !!stateCities[stateName];
+
+  const circumference = 2 * Math.PI * 54;
 
   return (
     <div className="passport-page">
-      {/* Desktop Header */}
       <DesktopHeader />
 
-      {/* Mobile Header */}
+      {/* Header */}
       <div className="passport-header">
         <h1 className="passport-title">Mi Pasaporte</h1>
         <p className="passport-subtitle">Explora los 32 estados de México</p>
@@ -105,9 +147,9 @@ const Passport = () => {
               stroke="white"
               strokeWidth="6"
               strokeLinecap="round"
-              strokeDasharray={339.292}
-              initial={{ strokeDashoffset: 339.292 }}
-              animate={{ strokeDashoffset: 339.292 - (339.292 * progress) / 100 }}
+              strokeDasharray={circumference}
+              initial={{ strokeDashoffset: circumference }}
+              animate={{ strokeDashoffset: circumference - (circumference * progress) / 100 }}
               transition={{ duration: 1, delay: 0.5 }}
             />
           </svg>
@@ -119,33 +161,89 @@ const Passport = () => {
 
         <p className="progress-message">
           {visitedCount === 0 && '¡Comienza tu aventura!'}
-          {visitedCount > 0 && visitedCount < 10 && '¡Buen comienzo!'}
-          {visitedCount >= 10 && '¡Vas excelente!'}
+          {visitedCount > 0 && visitedCount < 5 && '¡Buen comienzo, explorador!'}
+          {visitedCount >= 5 && visitedCount < 15 && '¡Vas muy bien!'}
+          {visitedCount >= 15 && visitedCount < 32 && '¡Eres un verdadero viajero!'}
+          {visitedCount === 32 && '¡Completaste todo México!'}
         </p>
       </div>
 
       {/* States Grid */}
       <div className="passport-content">
-        <div className="states-grid">
-          {MEXICAN_STATES.map((state, index) => (
-            <motion.button
-              key={state.code}
-              className={`state-card ${isStateVisited(state.name) ? 'visited' : ''}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.02 }}
-              onClick={() => setExpandedState(expandedState === state.code ? null : state.code)}
-            >
-              <span className="state-code">{state.code}</span>
-              <span className="state-name">{state.name}</span>
-              {isStateVisited(state.name) && (
-                <div className="state-check">
-                  <Check size={14} strokeWidth={3} />
-                </div>
-              )}
-            </motion.button>
-          ))}
-        </div>
+        {loading ? (
+          <div className="states-grid">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="state-card state-skeleton">
+                <div className="skeleton-code" />
+                <div className="skeleton-name" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="states-grid">
+            {MEXICAN_STATES.map((state, index) => {
+              const visited = isStateVisited(state.name);
+              const hasCities = hasAvailableCities(state.name);
+              const isExpanded = expandedState === state.code;
+
+              return (
+                <motion.div
+                  key={state.code}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.02 }}
+                >
+                  <button
+                    className={`state-card ${visited ? 'visited' : ''} ${hasCities ? 'has-cities' : ''} ${isExpanded ? 'expanded' : ''}`}
+                    onClick={() => {
+                      if (hasCities) {
+                        setExpandedState(isExpanded ? null : state.code);
+                      }
+                    }}
+                  >
+                    <span className="state-code">{state.code}</span>
+                    <span className="state-name">{state.name}</span>
+                    {visited && (
+                      <div className="state-check">
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                    {hasCities && !visited && (
+                      <div className="state-available">
+                        <MapPin size={10} />
+                      </div>
+                    )}
+                  </button>
+
+                  {/* Expanded cities */}
+                  <AnimatePresence>
+                    {isExpanded && stateCities[state.name] && (
+                      <motion.div
+                        className="state-cities"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                      >
+                        {stateCities[state.name].map(city => (
+                          <div key={city.name} className={`city-row ${city.visited ? 'visited' : ''}`}>
+                            <span className="city-emoji">{city.emoji}</span>
+                            <span className="city-name">{city.name}</span>
+                            {city.visited ? (
+                              <span className="city-pins">{city.pinsCount} pins</span>
+                            ) : (
+                              <span className="city-explore">Explorar</span>
+                            )}
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <BottomNav />

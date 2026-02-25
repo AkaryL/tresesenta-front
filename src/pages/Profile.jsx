@@ -1,13 +1,13 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Plus, Heart, Route, Gift, ChevronRight, Award, ShoppingBag, Shield } from 'lucide-react';
+import { LogOut, Plus, Heart, Route, Gift, ChevronRight, Award, ShoppingBag, Shield, Trophy, Zap } from 'lucide-react';
 
 const AdminDashboard = lazy(() => import('../components/admin/AdminDashboard'));
 import BottomNav from '../components/BottomNav';
 import DesktopHeader from '../components/DesktopHeader';
 import { useAuth } from '../context/AuthContext';
-import { authAPI, badgesAPI } from '../services/api';
+import { authAPI, badgesAPI, pointsAPI, usersAPI } from '../services/api';
 import './Profile.css';
 import './Auth.css';
 
@@ -39,7 +39,10 @@ const Profile = () => {
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [dailyLoginDone, setDailyLoginDone] = useState(false);
+  const [loginBonus, setLoginBonus] = useState(null);
 
+  // Fetch orders
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -56,6 +59,28 @@ const Profile = () => {
     if (user) fetchOrders();
     else setLoadingOrders(false);
   }, [user]);
+
+  // Daily login bonus
+  useEffect(() => {
+    const triggerDailyLogin = async () => {
+      try {
+        const response = await pointsAPI.dailyLogin();
+        const data = response.data;
+        if (data.points_earned > 0) {
+          setLoginBonus({
+            points: data.points_earned,
+            streak: data.streak,
+            streakBonus: data.streak_bonus || false,
+          });
+          setTimeout(() => setLoginBonus(null), 4000);
+        }
+        setDailyLoginDone(true);
+      } catch {
+        setDailyLoginDone(true);
+      }
+    };
+    if (user && !dailyLoginDone) triggerDailyLogin();
+  }, [user, dailyLoginDone]);
 
   useEffect(() => {
     const fetchBadges = async () => {
@@ -96,7 +121,7 @@ const Profile = () => {
     return `${months[date.getMonth()]} ${date.getFullYear()}`;
   };
 
-  const userPoints = user?.total_points || 36000;
+  const userPoints = user?.total_points || 0;
   const unlockedBadges = badges.filter(b => b.unlocked).length;
   const totalBadges = totalBadgesCount || badges.length;
 
@@ -125,9 +150,9 @@ const Profile = () => {
 
   const menuItems = [
     { icon: Plus, label: 'Crear Pin', action: () => navigate('/create') },
-    { icon: Heart, label: 'Favoritos', action: () => {} },
-    { icon: Route, label: 'Ver rutas guardadas', action: () => navigate('/routes') },
-    { icon: Gift, label: 'Intercambiar puntos', action: () => {} },
+    { icon: Heart, label: 'Mis Favoritos', action: () => navigate('/map?filter=favorites') },
+    { icon: Route, label: 'Ver rutas', action: () => navigate('/routes') },
+    { icon: Trophy, label: 'Ranking', action: () => navigate('/map?view=leaderboard') },
   ];
 
   return (
@@ -204,6 +229,7 @@ const Profile = () => {
           <div className="profile-details">
             <h2 className="profile-name">{user?.full_name || 'NOMBRE DE USUARIO'}</h2>
             <p className="profile-username">@{user?.username || 'user-name'}</p>
+            <p className="profile-level">{levelInfo.current}</p>
             {stats && (
               <p className="profile-subtitle">
                 Desde {formatMemberSince(stats.member_since)} · {stats.orders_count} {stats.orders_count === 1 ? 'pedido' : 'pedidos'}
@@ -358,7 +384,11 @@ const Profile = () => {
                 key={color.id}
                 className={`color-option ${selectedColor === color.id ? 'selected' : ''}`}
                 style={{ backgroundColor: color.bg }}
-                onClick={() => { setSelectedColor(color.id); localStorage.setItem('passport_color', color.id); }}
+                onClick={() => {
+                  setSelectedColor(color.id);
+                  localStorage.setItem('passport_color', color.id);
+                  usersAPI.updateProfileColor(color.id).catch(() => {});
+                }}
               >
                 {/* Onda decorativa en miniatura */}
                 <svg viewBox="0 0 40 40" className="color-wave-preview">
@@ -381,6 +411,29 @@ const Profile = () => {
       </div>
       </>
       )}
+
+      {/* Daily Login Bonus Toast */}
+      <AnimatePresence>
+        {loginBonus && (
+          <motion.div
+            className="daily-login-toast"
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: 'spring', damping: 20 }}
+          >
+            <Zap size={18} />
+            <div>
+              <strong>+{loginBonus.points} puntos</strong>
+              <span>
+                {loginBonus.streakBonus
+                  ? `Racha de ${loginBonus.streak} días`
+                  : 'Bonus de inicio de sesión'}
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <BottomNav />
     </div>

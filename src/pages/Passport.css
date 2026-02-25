@@ -104,6 +104,16 @@
   border-color: var(--camel);
 }
 
+.state-card.has-cities:not(.visited) {
+  border-color: rgba(184, 155, 122, 0.3);
+}
+
+.state-card.expanded {
+  border-color: var(--camel);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .state-code {
   font-size: 0.75rem;
   font-weight: 700;
@@ -127,10 +137,101 @@
   height: 24px;
   background: var(--camel);
   color: var(--white);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-full, 50%);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.state-available {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 20px;
+  height: 20px;
+  color: var(--camel);
+  opacity: 0.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Expanded cities list */
+.state-cities {
+  background: var(--white);
+  border: 2px solid var(--camel);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md, 12px) var(--radius-md, 12px);
+  overflow: hidden;
+  margin-top: -2px;
+}
+
+.city-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8125rem;
+  border-top: 1px solid var(--gray-light, #efefef);
+}
+
+.city-row.visited {
+  background: rgba(184, 155, 122, 0.06);
+}
+
+.city-emoji {
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.city-name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--charcoal);
+}
+
+.city-pins {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--camel);
+  background: rgba(184, 155, 122, 0.12);
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+}
+
+.city-explore {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--gray-mid, #999);
+  font-style: italic;
+}
+
+/* Skeleton loading */
+.state-skeleton {
+  pointer-events: none;
+}
+
+.skeleton-code {
+  width: 30px;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(110deg, var(--gray-light, #eee) 8%, #f5f5f5 18%, var(--gray-light, #eee) 33%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-name {
+  width: 70px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(110deg, var(--gray-light, #eee) 8%, #f5f5f5 18%, var(--gray-light, #eee) 33%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Tablet */

@@ -71,6 +71,19 @@ export const verificationAPI = {
 // Users
 export const usersAPI = {
   getByUsername: (username) => api.get(`/users/${username}`),
+  getMe: () => api.get('/users/me'),
+  updateMe: (data) => api.put('/users/me', data),
+  updateProfileColor: (color) => api.put('/users/me/profile-color', { color }),
+  getRanking: () => api.get('/users/ranking/top'),
+};
+
+// Points
+export const pointsAPI = {
+  getActions: () => api.get('/points/actions'),
+  getMyTransactions: (params) => api.get('/points/my-transactions', { params }),
+  getMyStats: () => api.get('/points/my-stats'),
+  getLeaderboard: (period) => api.get('/points/leaderboard', { params: period ? { period } : {} }),
+  dailyLogin: () => api.post('/points/daily-login'),
 };
 
 // Routes

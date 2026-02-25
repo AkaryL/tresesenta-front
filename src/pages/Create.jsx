@@ -97,7 +97,16 @@ const Create = () => {
     loadCategories();
     loadCities();
     loadMyShoes();
+    // Auto-detect location on mount
+    getGPSLocation();
   }, []);
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews]);
 
   const loadCategories = async () => {
     try {
@@ -280,6 +289,9 @@ const Create = () => {
   };
 
   const hasLocation = formData.latitude && formData.longitude;
+  const isFormValid = formData.title.trim() && formData.description.trim() && formData.category_id && hasLocation;
+  const titleLength = formData.title.length;
+  const descLength = formData.description.length;
 
   return (
     <div className="create-page">
@@ -295,7 +307,7 @@ const Create = () => {
         <button
           className="btn-publish"
           onClick={handleSubmit}
-          disabled={loading || !formData.title}
+          disabled={loading || !isFormValid}
         >
           {loading ? 'Publicando...' : 'Publicar'}
         </button>
@@ -353,24 +365,32 @@ const Create = () => {
           {/* Form Fields */}
           <div className="form-fields">
             <div className="field-group">
-              <label>Título</label>
+              <div className="field-header">
+                <label>Título</label>
+                {titleLength > 0 && <span className={`char-count ${titleLength > 100 ? 'over' : ''}`}>{titleLength}/100</span>}
+              </div>
               <input
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
                 required
+                maxLength={100}
                 placeholder="Nombre del lugar"
               />
             </div>
 
             <div className="field-group">
-              <label>Descripción</label>
+              <div className="field-header">
+                <label>Descripción</label>
+                {descLength > 0 && <span className={`char-count ${descLength > 500 ? 'over' : ''}`}>{descLength}/500</span>}
+              </div>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 required
+                maxLength={500}
                 placeholder="Cuéntanos sobre este lugar..."
                 rows="4"
               />
@@ -498,7 +518,7 @@ const Create = () => {
             <button
               type="submit"
               className="btn-create-pin"
-              disabled={loading || !formData.title}
+              disabled={loading || !isFormValid}
             >
               <MapPin size={18} />
               {loading ? 'Publicando...' : 'Crear Pin'}

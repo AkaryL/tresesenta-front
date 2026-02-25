@@ -206,6 +206,22 @@
   gap: 0.5rem;
 }
 
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.char-count {
+  font-size: 0.75rem;
+  color: var(--gray-mid);
+  font-weight: 400;
+}
+
+.char-count.over {
+  color: #e74c3c;
+}
+
 .field-group label {
   font-size: 0.875rem;
   font-weight: 600;
