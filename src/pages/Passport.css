@@ -259,7 +259,7 @@
 
   .passport-header {
     width: 100%;
-    max-width: 1000px;
+    max-width: 1100px;
     border-radius: 20px;
     padding: 2.5rem 3rem;
     margin: 2rem auto 0;
@@ -267,8 +267,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 2rem;
+    gap: 2.5rem;
     background: linear-gradient(135deg, var(--charcoal) 0%, var(--camel) 100%);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   }
 
   .passport-header-text {
@@ -281,10 +282,12 @@
 
   .passport-subtitle {
     margin-bottom: 1rem;
+    font-size: 1.0625rem;
   }
 
   .progress-message {
     text-align: left;
+    font-size: 1.125rem;
   }
 
   .progress-container {
@@ -308,7 +311,7 @@
   }
 
   .passport-content {
-    max-width: 1000px;
+    max-width: 1100px;
     width: 100%;
     margin: 0 auto;
     padding: 2rem;
@@ -318,21 +321,33 @@
 
   .states-grid {
     grid-template-columns: repeat(5, 1fr);
-    gap: 1.25rem;
+    gap: 1rem;
   }
 
   .state-card {
     padding: 1.25rem;
+    border-radius: 14px;
+    transition: all 0.2s;
+  }
+
+  .state-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
 
   .state-name {
     font-size: 1rem;
+  }
+
+  .state-code {
+    font-size: 0.8125rem;
   }
 }
 
 @media (min-width: 1440px) {
   .passport-header {
     max-width: 1200px;
+    padding: 3rem 3.5rem;
   }
 
   .passport-content {
@@ -341,5 +356,6 @@
 
   .states-grid {
     grid-template-columns: repeat(6, 1fr);
+    gap: 1.25rem;
   }
 }

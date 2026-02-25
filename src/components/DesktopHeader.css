@@ -9,7 +9,8 @@
     align-items: center;
     justify-content: center;
     align-self: stretch;
-    padding: 3.5rem 2rem 1rem;
+    padding: 0 3rem;
+    height: 64px;
     background: var(--charcoal);
     position: sticky;
     top: 0;
@@ -19,25 +20,53 @@
     width: 100% !important;
     min-width: 100%;
     box-sizing: border-box;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   }
 
   .desktop-nav {
     display: flex;
     align-items: center;
-    justify-content: space-evenly;
     width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    gap: 1rem;
+  }
+
+  .desktop-brand {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: white;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+  }
+
+  .desktop-brand:hover {
+    opacity: 0.85;
+  }
+
+  .desktop-nav-links {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    flex: 1;
   }
 
   .desktop-nav-link {
-    padding: 0.5rem 1rem;
-    color: rgba(255, 255, 255, 0.85);
+    padding: 0.5rem 1.125rem;
+    color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
-    font-size: 0.95rem;
+    font-size: 0.8125rem;
     font-weight: 500;
-    letter-spacing: 0.12em;
-    transition: color 0.2s;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
     background: transparent;
     border: none;
+    border-radius: 8px;
     cursor: pointer;
     font-family: var(--font-body);
     text-transform: uppercase;
@@ -45,6 +74,7 @@
 
   .desktop-nav-link:hover {
     color: white;
+    background: rgba(255, 255, 255, 0.08);
   }
 }
 

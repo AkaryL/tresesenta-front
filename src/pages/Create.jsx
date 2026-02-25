@@ -314,6 +314,19 @@ const Create = () => {
       </div>
 
       <div className="create-content">
+        <div className="create-desktop-header">
+          <div>
+            <h1 className="create-desktop-title">Crear nuevo Pin</h1>
+            <p className="create-desktop-subtitle">Comparte tu experiencia con la comunidad</p>
+          </div>
+          <button
+            className="btn-publish-desktop"
+            onClick={handleSubmit}
+            disabled={loading || !isFormValid}
+          >
+            {loading ? 'Publicando...' : 'Publicar Pin'}
+          </button>
+        </div>
         <form className="create-form" onSubmit={handleSubmit}>
           {/* Image Upload Section */}
           <div className="images-section">

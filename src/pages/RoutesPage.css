@@ -538,22 +538,25 @@
     border-bottom: none;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem 2rem 0;
+    padding: 2.5rem 2rem 0;
   }
 
   .routes-header-minimal h1 {
+    font-family: var(--font-heading);
     font-size: 2.25rem;
+    font-weight: 600;
   }
 
   .routes-subtitle {
     font-size: 1rem;
+    margin-top: 0.5rem;
   }
 
   .routes-content {
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
-    padding: 1.5rem 2rem 2rem;
+    padding: 2rem;
   }
 
   .routes-grid {
@@ -563,6 +566,13 @@
 
   .route-card {
     border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  .route-card:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    border-color: transparent;
   }
 
   .route-image {
@@ -577,17 +587,46 @@
     font-size: 1.25rem;
   }
 
+  .route-description {
+    font-size: 0.9375rem;
+  }
+
   .route-modal {
     max-width: 560px;
+  }
+
+  .modal-header img {
+    height: 260px;
+  }
+
+  .modal-header-placeholder {
+    height: 260px;
+  }
+
+  .modal-content {
+    padding: 2rem;
+  }
+
+  .modal-content h2 {
+    font-size: 1.75rem;
   }
 }
 
 @media (min-width: 1440px) {
+  .routes-header-minimal {
+    max-width: 1400px;
+  }
+
   .routes-content {
     max-width: 1400px;
   }
 
   .routes-grid {
     grid-template-columns: repeat(4, 1fr);
+    gap: 1.75rem;
+  }
+
+  .route-image {
+    height: 240px;
   }
 }

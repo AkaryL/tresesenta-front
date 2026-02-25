@@ -137,23 +137,25 @@ const DesktopHeader = () => {
     <>
       <header className="desktop-header">
         <nav className="desktop-nav">
-          <Link to="/" className="desktop-nav-link">HOME</Link>
-          <Link to="/map" className="desktop-nav-link">MAPA 360</Link>
-          {isAuthenticated ? (
-            <>
-              <Link to="/passport" className="desktop-nav-link">PASAPORTE</Link>
-              <Link to="/create" className="desktop-nav-link">CREAR PIN</Link>
-              <Link to="/routes" className="desktop-nav-link">RUTAS</Link>
-              <Link to="/profile" className="desktop-nav-link">PERFIL</Link>
-            </>
-          ) : (
-            <>
-              <button className="desktop-nav-link" onClick={openLoginModal}>PASAPORTE</button>
-              <button className="desktop-nav-link" onClick={openLoginModal}>CREAR PIN</button>
-              <button className="desktop-nav-link" onClick={openLoginModal}>RUTAS</button>
-              <button className="desktop-nav-link" onClick={openLoginModal}>INICIAR SESIÓN</button>
-            </>
-          )}
+          <Link to="/" className="desktop-brand">TRESESENTA</Link>
+          <div className="desktop-nav-links">
+            <Link to="/map" className="desktop-nav-link">MAPA 360</Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/passport" className="desktop-nav-link">PASAPORTE</Link>
+                <Link to="/create" className="desktop-nav-link">CREAR PIN</Link>
+                <Link to="/routes" className="desktop-nav-link">RUTAS</Link>
+                <Link to="/profile" className="desktop-nav-link">PERFIL</Link>
+              </>
+            ) : (
+              <>
+                <button className="desktop-nav-link" onClick={openLoginModal}>PASAPORTE</button>
+                <button className="desktop-nav-link" onClick={openLoginModal}>CREAR PIN</button>
+                <button className="desktop-nav-link" onClick={openLoginModal}>RUTAS</button>
+                <button className="desktop-nav-link" onClick={openLoginModal}>INICIAR SESIÓN</button>
+              </>
+            )}
+          </div>
         </nav>
       </header>
 

@@ -574,6 +574,11 @@
   }
 }
 
+/* Desktop title - hidden on mobile */
+.create-desktop-header {
+  display: none;
+}
+
 /* Desktop */
 @media (min-width: 1024px) {
   .create-page {
@@ -589,21 +594,68 @@
     display: none;
   }
 
+  .create-desktop-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.75rem 2.5rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .create-desktop-title {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--charcoal);
+    margin: 0;
+  }
+
+  .create-desktop-subtitle {
+    font-size: 0.9375rem;
+    color: var(--gray-mid);
+    margin: 0.25rem 0 0;
+  }
+
+  .btn-publish-desktop {
+    padding: 0.75rem 2rem;
+    background: var(--camel);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-body);
+    white-space: nowrap;
+  }
+
+  .btn-publish-desktop:hover:not(:disabled) {
+    background: var(--charcoal);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-publish-desktop:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
   .create-content {
-    max-width: 960px;
+    max-width: 1000px;
     width: 100%;
     margin-top: 2rem;
     margin-bottom: 3rem;
     background: white;
     border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
     overflow: hidden;
   }
 
   .create-form {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    min-height: 500px;
+    min-height: 540px;
   }
 
   .images-section {
@@ -612,12 +664,12 @@
     position: sticky;
     top: 0;
     align-self: start;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - 180px);
   }
 
   .upload-area {
     height: 100%;
-    min-height: 500px;
+    min-height: 540px;
   }
 
   .images-preview {
@@ -626,7 +678,8 @@
   }
 
   .form-fields {
-    padding: 2rem;
+    padding: 2rem 2.5rem;
+    gap: 1.5rem;
   }
 
   .field-group label {
@@ -636,16 +689,24 @@
   .field-group input,
   .field-group textarea,
   .field-group select {
-    padding: 1rem;
+    padding: 0.875rem 1rem;
     font-size: 1rem;
+    border-radius: 10px;
   }
 
   .gps-map-preview {
     height: 200px;
   }
 
+  .btn-create-pin {
+    padding: 1rem;
+    border-radius: 12px;
+    font-size: 1.0625rem;
+  }
+
   .success-modal {
-    max-width: 400px;
+    max-width: 420px;
+    padding: 2.5rem 2rem;
   }
 }
 

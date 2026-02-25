@@ -467,7 +467,7 @@
 
   .badges-hero-brand {
     display: block;
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.25em;
     text-transform: uppercase;
@@ -477,14 +477,14 @@
 
   .badges-hero-title {
     font-family: var(--font-heading);
-    font-size: 2.25rem;
-    font-weight: 700;
+    font-size: 2.5rem;
+    font-weight: 600;
     color: white;
     margin: 0 0 0.5rem;
   }
 
   .badges-hero-description {
-    font-size: 1rem;
+    font-size: 1.0625rem;
     color: rgba(255, 255, 255, 0.6);
     margin: 0;
     max-width: 500px;
@@ -494,7 +494,7 @@
 
   /* Content pulls up over hero */
   .badges-content {
-    max-width: 960px;
+    max-width: 1000px;
     margin: -2rem auto 3rem;
     padding: 0 2rem;
     position: relative;
@@ -505,6 +505,7 @@
     padding: 1.5rem 2rem;
     border-radius: 16px;
     gap: 1.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
 
   .summary-donut {
@@ -520,6 +521,10 @@
     font-size: 0.9375rem;
   }
 
+  .summary-bar {
+    height: 6px;
+  }
+
   .badges-grid-full {
     grid-template-columns: repeat(5, 1fr);
     gap: 1rem;
@@ -528,6 +533,11 @@
   .badge-card {
     padding: 1.25rem 0.75rem;
     border-radius: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  .badge-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   }
 
   .badge-image-container {
@@ -536,7 +546,7 @@
   }
 
   .badge-card-name {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
   }
 
   .badge-tooltip {
@@ -545,7 +555,7 @@
   }
 
   .badge-modal {
-    max-width: 420px;
+    max-width: 440px;
     padding: 2.5rem 2rem;
   }
 
@@ -553,14 +563,28 @@
     width: 120px;
     height: 120px;
   }
+
+  .badge-modal-name {
+    font-size: 1.5rem;
+  }
+
+  .badge-modal-description {
+    font-size: 0.9375rem;
+  }
 }
 
 @media (min-width: 1440px) {
   .badges-grid-full {
     grid-template-columns: repeat(6, 1fr);
+    gap: 1.25rem;
   }
 
   .badges-content {
-    max-width: 1100px;
+    max-width: 1200px;
+  }
+
+  .badge-image-container {
+    width: 88px;
+    height: 88px;
   }
 }
