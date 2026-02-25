@@ -152,7 +152,7 @@ const Profile = () => {
     { icon: Plus, label: 'Crear Pin', action: () => navigate('/create') },
     { icon: Heart, label: 'Mis Favoritos', action: () => navigate('/map?filter=favorites') },
     { icon: Route, label: 'Ver rutas', action: () => navigate('/routes') },
-    { icon: Trophy, label: 'Ranking', action: () => navigate('/map?view=leaderboard') },
+    { icon: Trophy, label: 'Ranking', action: () => navigate('/leaderboard') },
   ];
 
   return (

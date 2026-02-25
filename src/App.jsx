@@ -9,6 +9,7 @@ import Profile from './pages/Profile'
 import RoutesPage from './pages/RoutesPage'
 import Create from './pages/Create'
 import Badges from './pages/Badges'
+import Leaderboard from './pages/Leaderboard'
 import './App.css'
 
 function App() {
@@ -56,6 +57,10 @@ function App() {
       <Route
         path="/badges"
         element={isAuthenticated ? <Badges /> : <Navigate to="/login" />}
+      />
+      <Route
+        path="/leaderboard"
+        element={isAuthenticated ? <Leaderboard /> : <Navigate to="/login" />}
       />
     </Routes>
   )
