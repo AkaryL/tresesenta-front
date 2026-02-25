@@ -535,15 +535,32 @@
 @media (max-width: 480px) {
   .landing-nav {
     gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0.25rem;
   }
 
   .nav-link {
-    padding: 0.5rem;
+    padding: 0.375rem 0.5rem;
     font-size: 0.625rem;
+  }
+
+  .hero-section {
+    height: auto;
+    min-height: 320px;
+  }
+
+  .hero-bg-video {
+    width: 400%;
+    height: 400%;
   }
 
   .hero-title {
     font-size: 2rem;
+  }
+
+  .hero-content {
+    padding: 2rem 1rem;
   }
 
   .info-stats {

@@ -582,6 +582,7 @@
     align-items: center;
     background: var(--cream);
     padding: 0;
+    padding-bottom: 0;
   }
 
   .create-header-minimal {
@@ -589,21 +590,39 @@
   }
 
   .create-content {
-    max-width: 900px;
+    max-width: 960px;
     width: 100%;
     margin-top: 2rem;
+    margin-bottom: 3rem;
     background: white;
     border-radius: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     overflow: hidden;
   }
 
+  .create-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 500px;
+  }
+
+  .images-section {
+    border-bottom: none;
+    border-right: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: calc(100vh - 120px);
+  }
+
   .upload-area {
-    height: 400px;
+    height: 100%;
+    min-height: 500px;
   }
 
   .images-preview {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    min-height: 400px;
   }
 
   .form-fields {
@@ -619,6 +638,14 @@
   .field-group select {
     padding: 1rem;
     font-size: 1rem;
+  }
+
+  .gps-map-preview {
+    height: 200px;
+  }
+
+  .success-modal {
+    max-width: 400px;
   }
 }
 

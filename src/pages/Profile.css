@@ -826,6 +826,13 @@
   opacity: 0.7;
 }
 
+/* Daily login toast desktop fix */
+@media (min-width: 1024px) {
+  .daily-login-toast {
+    bottom: 2rem;
+  }
+}
+
 /* ========================================
    LARGE DESKTOP
    ======================================== */

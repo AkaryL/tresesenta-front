@@ -120,8 +120,17 @@ const Passport = () => {
 
       {/* Header */}
       <div className="passport-header">
-        <h1 className="passport-title">Mi Pasaporte</h1>
-        <p className="passport-subtitle">Explora los 32 estados de México</p>
+        <div className="passport-header-text">
+          <h1 className="passport-title">Mi Pasaporte</h1>
+          <p className="passport-subtitle">Explora los 32 estados de México</p>
+          <p className="progress-message">
+            {visitedCount === 0 && '¡Comienza tu aventura!'}
+            {visitedCount > 0 && visitedCount < 5 && '¡Buen comienzo, explorador!'}
+            {visitedCount >= 5 && visitedCount < 15 && '¡Vas muy bien!'}
+            {visitedCount >= 15 && visitedCount < 32 && '¡Eres un verdadero viajero!'}
+            {visitedCount === 32 && '¡Completaste todo México!'}
+          </p>
+        </div>
 
         {/* Progress Circle */}
         <motion.div
@@ -130,7 +139,7 @@ const Passport = () => {
           animate={{ scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <svg width="120" height="120" className="progress-ring">
+          <svg viewBox="0 0 120 120" className="progress-ring">
             <circle
               cx="60"
               cy="60"
@@ -158,14 +167,6 @@ const Passport = () => {
             <span className="total">/{totalStates}</span>
           </div>
         </motion.div>
-
-        <p className="progress-message">
-          {visitedCount === 0 && '¡Comienza tu aventura!'}
-          {visitedCount > 0 && visitedCount < 5 && '¡Buen comienzo, explorador!'}
-          {visitedCount >= 5 && visitedCount < 15 && '¡Vas muy bien!'}
-          {visitedCount >= 15 && visitedCount < 32 && '¡Eres un verdadero viajero!'}
-          {visitedCount === 32 && '¡Completaste todo México!'}
-        </p>
       </div>
 
       {/* States Grid */}
