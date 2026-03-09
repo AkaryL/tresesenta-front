@@ -127,6 +127,9 @@ export const adminAPI = {
   // Settings
   getSettings: (category) => api.get('/admin/settings', { params: category ? { category } : {} }),
   updateSetting: (key, value) => api.put(`/admin/settings/${key}`, { value }),
+  // Historial
+  getHistorial: () => api.get('/admin/historial'),
+  rejectFromHistorial: (pinId, reason) => api.post(`/admin/historial/${pinId}/reject`, { reason }),
   // Moderation Logs
   getLogs: (params) => api.get('/admin/moderation-logs', { params }),
   // Verification

@@ -320,6 +320,39 @@ const Map = () => {
     return () => disconnectSocket();
   }, []);
 
+  // WebSocket: eventos globales del mapa (admin actions)
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket) return;
+
+    const handlePinRemoved = ({ pin_id }) => {
+      setPins(prev => prev.filter(p => p.id !== pin_id));
+      setSelectedPin(prev => (prev?.id === pin_id ? null : prev));
+    };
+
+    const handlePinAdded = async ({ pin_id }) => {
+      try {
+        const res = await pinsAPI.getById(pin_id);
+        const newPin = res.data.pin || res.data;
+        if (!newPin?.id) return;
+        setPins(prev => {
+          if (prev.some(p => p.id === newPin.id)) return prev;
+          return [newPin, ...prev];
+        });
+      } catch {
+        // pin puede no ser accesible aún, ignorar
+      }
+    };
+
+    socket.on('pin:removed', handlePinRemoved);
+    socket.on('pin:added', handlePinAdded);
+
+    return () => {
+      socket.off('pin:removed', handlePinRemoved);
+      socket.off('pin:added', handlePinAdded);
+    };
+  }, []);
+
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return;

@@ -636,12 +636,11 @@ const Create = () => {
             )}
 
             <div className="success-text">
-              <h2>Pin registrado</h2>
-              {successData.points > 0 && (
+              <h2>Pin enviado</h2>
+              {successData.points > 0 ? (
                 <div className="success-points">+{successData.points} puntos</div>
-              )}
-              {successData.verification && (
-                <p className="success-verification">Tu verificación TRESESENTA está pendiente de aprobación</p>
+              ) : (
+                <p className="success-verification">Recibirás tus puntos cuando un administrador apruebe tu pin</p>
               )}
             </div>
 
@@ -650,7 +649,7 @@ const Create = () => {
               style={{ background: pinColor }}
               onClick={() => navigate('/map')}
             >
-              Ver en Mapa 360
+              Volver al Mapa
             </button>
           </div>
         </div>

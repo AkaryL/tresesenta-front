@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  BarChart3, Users, MapPin, Shield, Award, Settings,
-  ChevronDown, Search, Ban, Eye, EyeOff, Check, X,
-  AlertTriangle, Clock, TrendingUp, Star, Zap, Image
+  Users, MapPin, Shield, Award, Settings,
+  ChevronDown, Search, Eye, EyeOff, Check, X,
+  Zap, History, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { adminAPI } from '../../services/api';
+import { getSocket } from '../../services/socket';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -15,12 +16,13 @@ const AdminDashboard = () => {
 
   // Section data
   const [verifications, setVerifications] = useState([]);
+  const [historial, setHistorial] = useState([]);
   const [users, setUsers] = useState([]);
   const [pins, setPins] = useState([]);
   const [badges, setBadges] = useState([]);
   const [pointActions, setPointActions] = useState([]);
   const [settings, setSettings] = useState([]);
-  const [loadedSections, setLoadedSections] = useState({});
+  const loadedSectionsRef = useRef({});
 
   // UI state
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,12 +31,32 @@ const AdminDashboard = () => {
   const [savingId, setSavingId] = useState(null);
   const [toast, setToast] = useState(null);
 
+  // Historial UI state
+  const [historialTab, setHistorialTab] = useState('approved');
+  const [historialSearch, setHistorialSearch] = useState('');
+  const [historialPage, setHistorialPage] = useState(1);
+  const HISTORIAL_PAGE_SIZE = 10;
+
+  // Expanded verification cards
+  const [expandedVerif, setExpandedVerif] = useState({});
+  const toggleVerifExpand = (id) => setExpandedVerif(prev => ({ ...prev, [id]: !prev[id] }));
+
+  // Historial detail modal
+  const [historialModal, setHistorialModal] = useState(null); // item de historial seleccionado
+
+  // Lightbox
+  const [lightbox, setLightbox] = useState(null); // { images: [], index: 0 }
+
+  const openLightbox = (images, index = 0) => setLightbox({ images, index });
+  const closeLightbox = () => setLightbox(null);
+  const lightboxPrev = () => setLightbox(lb => ({ ...lb, index: (lb.index - 1 + lb.images.length) % lb.images.length }));
+  const lightboxNext = () => setLightbox(lb => ({ ...lb, index: (lb.index + 1) % lb.images.length }));
+
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Load stats on mount
   useEffect(() => {
     loadStats();
   }, []);
@@ -50,19 +72,17 @@ const AdminDashboard = () => {
     }
   };
 
-  // Lazy load section data
-  useEffect(() => {
-    if (openSection && !loadedSections[openSection]) {
-      loadSectionData(openSection);
-    }
-  }, [openSection]);
-
-  const loadSectionData = async (section) => {
+  const loadSectionData = useCallback(async (section) => {
     try {
       switch (section) {
         case 'verifications': {
           const res = await adminAPI.getPendingVerifications();
           setVerifications(res.data.requests || []);
+          break;
+        }
+        case 'historial': {
+          const res = await adminAPI.getHistorial();
+          setHistorial(res.data.historial || []);
           break;
         }
         case 'users': {
@@ -86,16 +106,34 @@ const AdminDashboard = () => {
             adminAPI.getSettings(),
           ]);
           setPointActions(pa.data.actions || []);
-          setSettings(st.data.settings || []);
+          const grouped = st.data.settings || {};
+          setSettings(Object.values(grouped).flat());
           break;
         }
       }
-      setLoadedSections(prev => ({ ...prev, [section]: true }));
+      loadedSectionsRef.current[section] = true;
     } catch (e) {
       console.error(`Error loading ${section}:`, e);
       showToast(`Error al cargar ${section}`, 'error');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (openSection && !loadedSectionsRef.current[openSection]) {
+      loadSectionData(openSection);
+    }
+  }, [openSection, loadSectionData]);
+
+  // WebSocket: actualizar verificaciones pendientes en tiempo real
+  useEffect(() => {
+    const socket = getSocket();
+    const handler = ({ verif_id, pin_id, status }) => {
+      setVerifications(prev => prev.filter(v => String(v.id) !== String(verif_id) && String(v.pin_id) !== String(pin_id)));
+      loadedSectionsRef.current['historial'] = false;
+    };
+    socket.on('verification:updated', handler);
+    return () => socket.off('verification:updated', handler);
+  }, []);
 
   const toggleSection = (section) => {
     setOpenSection(prev => prev === section ? null : section);
@@ -109,6 +147,8 @@ const AdminDashboard = () => {
       await adminAPI.approveVerification(id, 'Aprobado desde panel');
       setVerifications(prev => prev.filter(v => v.id !== id));
       if (stats) setStats(s => ({ ...s, verifications: { ...s.verifications, pending: s.verifications.pending - 1, approved: s.verifications.approved + 1 } }));
+      // Invalidar historial para que recargue la próxima vez
+      loadedSectionsRef.current['historial'] = false;
       showToast('Verificacion aprobada');
     } catch (e) {
       showToast('Error al aprobar', 'error');
@@ -126,6 +166,7 @@ const AdminDashboard = () => {
       if (stats) setStats(s => ({ ...s, verifications: { ...s.verifications, pending: s.verifications.pending - 1, rejected: s.verifications.rejected + 1 } }));
       setConfirmAction(null);
       setActionInput('');
+      loadedSectionsRef.current['historial'] = false;
       showToast('Verificacion rechazada');
     } catch (e) {
       showToast('Error al rechazar', 'error');
@@ -231,6 +272,27 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleRejectFromHistorial = async (pinId) => {
+    if (!actionInput.trim()) return;
+    setSavingId(pinId);
+    try {
+      await adminAPI.rejectFromHistorial(pinId, actionInput.trim());
+      // Pin regular → desaparece del historial (oculto). Tresesenta → queda como rechazado
+      setHistorial(prev => prev
+        .map(h => h.pin_id === pinId ? { ...h, status: 'rejected', rejection_reason: actionInput.trim() } : h)
+        .filter(h => !(h.pin_id === pinId && !h.used_tresesenta))
+      );
+      setConfirmAction(null);
+      setActionInput('');
+      loadedSectionsRef.current['historial'] = false;
+      showToast('Pin rechazado y removido del mapa');
+    } catch (e) {
+      showToast('Error al rechazar', 'error');
+    } finally {
+      setSavingId(null);
+    }
+  };
+
   const handleUpdatePointAction = async (action, field, value) => {
     setSavingId(action.id);
     try {
@@ -247,7 +309,7 @@ const AdminDashboard = () => {
   const handleUpdateSetting = async (key, value) => {
     setSavingId(key);
     try {
-      await adminAPI.updateSetting(key, { value });
+      await adminAPI.updateSetting(key, value);
       setSettings(prev => prev.map(s => s.setting_key === key ? { ...s, setting_value: { value } } : s));
       showToast('Configuracion guardada');
     } catch (e) {
@@ -264,7 +326,6 @@ const AdminDashboard = () => {
       )
     : users;
 
-  // === SECTION HEADER ===
   const SectionHeader = ({ id, icon: Icon, title, badge }) => (
     <button className="section-header" onClick={() => toggleSection(id)}>
       <div className="section-title">
@@ -279,6 +340,13 @@ const AdminDashboard = () => {
     </button>
   );
 
+  // Imágenes de una verificación: primero las del pin, luego las de evidencia
+  const getVerifImages = (v) => {
+    const pinImgs = (v.pin_images || []).map(url => ({ url, type: 'pin' }));
+    const evidImgs = (v.verification_images || []).map(url => ({ url, type: 'evidencia' }));
+    return [...pinImgs, ...evidImgs];
+  };
+
   return (
     <div className="admin-dashboard">
       {/* Toast */}
@@ -291,6 +359,162 @@ const AdminDashboard = () => {
             exit={{ opacity: 0, y: -20 }}
           >
             {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {/* Historial detail modal */}
+        {historialModal && (
+          <motion.div
+            className="admin-lightbox-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setHistorialModal(null)}
+          >
+            <motion.div
+              className="historial-modal-content"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="admin-lightbox-close" onClick={() => setHistorialModal(null)}>
+                <X size={20} />
+              </button>
+
+              {/* Status badge */}
+              <div className={`historial-modal-badge ${historialModal.status}`}>
+                {historialModal.status === 'approved' ? <><Check size={13} /> Aprobado</> : <><X size={13} /> Rechazado</>}
+              </div>
+
+              <h3 className="historial-modal-title">{historialModal.pin_title}</h3>
+
+              {/* Imágenes del pin */}
+              {(() => {
+                const imgs = [
+                  ...(historialModal.pin_images || []).map(u => ({ url: u, type: 'pin' })),
+                  ...(historialModal.verification_images || []).map(u => ({ url: u, type: 'evidencia' })),
+                ];
+                return imgs.length > 0 ? (
+                  <div className="historial-modal-images">
+                    {imgs.map((img, i) => (
+                      <button key={i} className="verification-thumb-btn" onClick={() => openLightbox(imgs, i)}>
+                        <img src={img.url} alt="" />
+                        {img.type === 'evidencia' && <span className="thumb-badge-ev">EV</span>}
+                      </button>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
+
+              {/* Rechazo prominente */}
+              {historialModal.rejection_reason && (
+                <div className="historial-modal-rejection">
+                  <strong>Motivo de rechazo:</strong>
+                  <p>{historialModal.rejection_reason}</p>
+                </div>
+              )}
+
+              {/* Detalles */}
+              <div className="historial-modal-details">
+                {historialModal.pin_description && (
+                  <div className="verif-detail-row">
+                    <span className="verif-detail-label">Descripción</span>
+                    <span className="verif-detail-value">{historialModal.pin_description}</span>
+                  </div>
+                )}
+                <div className="verif-detail-row">
+                  <span className="verif-detail-label">Categoría</span>
+                  <span className="verif-detail-value">{historialModal.category_emoji} {historialModal.category_name}</span>
+                </div>
+                {historialModal.city_name && (
+                  <div className="verif-detail-row">
+                    <span className="verif-detail-label">Ciudad</span>
+                    <span className="verif-detail-value">{historialModal.city_name}</span>
+                  </div>
+                )}
+                {historialModal.location_name && (
+                  <div className="verif-detail-row">
+                    <span className="verif-detail-label">Ubicación</span>
+                    <span className="verif-detail-value">{historialModal.location_name}</span>
+                  </div>
+                )}
+                {historialModal.used_tresesenta && historialModal.shoe_model && (
+                  <div className="verif-detail-row">
+                    <span className="verif-detail-label">Modelo</span>
+                    <span className="verif-detail-value verif-detail-model">{historialModal.shoe_model}</span>
+                  </div>
+                )}
+                <div className="verif-detail-row">
+                  <span className="verif-detail-label">Creador</span>
+                  <span className="verif-detail-value">@{historialModal.username}</span>
+                </div>
+                <div className="verif-detail-row">
+                  <span className="verif-detail-label">Revisado por</span>
+                  <span className="verif-detail-value">@{historialModal.reviewer_username || '—'}</span>
+                </div>
+                <div className="verif-detail-row">
+                  <span className="verif-detail-label">Fecha revisión</span>
+                  <span className="verif-detail-value">
+                    {historialModal.reviewed_at
+                      ? new Date(historialModal.reviewed_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+                      : '—'}
+                  </span>
+                </div>
+                {historialModal.points_awarded > 0 && (
+                  <div className="verif-detail-row">
+                    <span className="verif-detail-label">Puntos otorgados</span>
+                    <span className="verif-detail-value">+{historialModal.points_awarded} pts</span>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {lightbox && (
+          <motion.div
+            className="admin-lightbox-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeLightbox}
+          >
+            <motion.div
+              className="admin-lightbox-content"
+              initial={{ scale: 0.85 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.85 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="admin-lightbox-close" onClick={closeLightbox}>
+                <X size={20} />
+              </button>
+              <img
+                src={lightbox.images[lightbox.index].url}
+                alt=""
+                className="admin-lightbox-img"
+              />
+              {lightbox.images[lightbox.index].type === 'evidencia' && (
+                <span className="admin-lightbox-tag">Evidencia</span>
+              )}
+              {lightbox.images.length > 1 && (
+                <>
+                  <button className="admin-lightbox-nav admin-lightbox-prev" onClick={lightboxPrev}>
+                    <ChevronLeft size={22} />
+                  </button>
+                  <button className="admin-lightbox-nav admin-lightbox-next" onClick={lightboxNext}>
+                    <ChevronRight size={22} />
+                  </button>
+                  <div className="admin-lightbox-counter">
+                    {lightbox.index + 1} / {lightbox.images.length}
+                  </div>
+                </>
+              )}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -339,7 +563,7 @@ const AdminDashboard = () => {
 
       {/* Section: Verifications */}
       <div className="admin-section">
-        <SectionHeader id="verifications" icon={Shield} title="Verificaciones" badge={stats?.verifications?.pending} />
+        <SectionHeader id="verifications" icon={Shield} title="Verificaciones pendientes" badge={stats?.verifications?.pending} />
         <AnimatePresence>
           {openSection === 'verifications' && (
             <motion.div
@@ -353,84 +577,349 @@ const AdminDashboard = () => {
                 {verifications.length === 0 ? (
                   <p className="section-empty">No hay verificaciones pendientes</p>
                 ) : (
-                  verifications.map(v => (
-                    <div key={v.id} className="verification-card">
-                      <div className="verification-header">
-                        <div className="verification-user">
-                          <div className="admin-avatar">{v.username?.charAt(0).toUpperCase()}</div>
-                          <div>
-                            <strong>@{v.username}</strong>
-                            <span className="text-muted">{v.email}</span>
+                  verifications.map(v => {
+                    const allImages = getVerifImages(v);
+                    const isExpanded = !!expandedVerif[v.id];
+                    return (
+                      <div key={v.id} className="verification-card">
+                        {/* Header: usuario + fecha */}
+                        <div className="verification-header">
+                          <div className="verification-user">
+                            {v.avatar_url ? (
+                              <img src={v.avatar_url} alt={v.username} className="admin-avatar-img" />
+                            ) : (
+                              <div className="admin-avatar">{v.username?.charAt(0).toUpperCase()}</div>
+                            )}
+                            <div>
+                              <strong>@{v.username}</strong>
+                              <span className="text-muted text-small">{v.email}</span>
+                            </div>
+                            {v.is_verified_buyer && <span className="tag tag-green">Comprador</span>}
                           </div>
-                          {v.is_verified_buyer && <span className="tag tag-green">Comprador</span>}
+                          <span className="text-muted text-small">
+                            {new Date(v.created_at).toLocaleDateString('es-MX')}
+                          </span>
                         </div>
-                        <span className="text-muted text-small">
-                          {new Date(v.created_at).toLocaleDateString('es-MX')}
-                        </span>
-                      </div>
-                      <div className="verification-pin-info">
-                        <MapPin size={14} />
-                        <span>{v.pin_title}</span>
-                        {v.location_name && <span className="text-muted">· {v.location_name}</span>}
-                      </div>
-                      {(v.pin_images?.length > 0 || v.verification_images?.length > 0) && (
-                        <div className="verification-images">
-                          {(v.pin_images || []).map((img, i) => (
-                            <img key={`p${i}`} src={img} alt="Pin" className="verification-thumb" />
-                          ))}
-                          {(v.verification_images || []).map((img, i) => (
-                            <img key={`v${i}`} src={img} alt="Evidencia" className="verification-thumb verification-evidence" />
-                          ))}
+
+                        {/* Info básica del pin */}
+                        <div className="verification-pin-info">
+                          <MapPin size={14} />
+                          <span>{v.pin_title}</span>
+                          {v.location_name && <span className="text-muted">· {v.location_name}</span>}
                         </div>
-                      )}
-                      {confirmAction?.type === 'reject' && confirmAction.id === v.id ? (
-                        <div className="inline-confirm">
-                          <input
-                            className="inline-input"
-                            placeholder="Razon del rechazo..."
-                            value={actionInput}
-                            onChange={e => setActionInput(e.target.value)}
-                            autoFocus
-                          />
-                          <div className="inline-confirm-btns">
+
+                        {/* Tags rápidos visibles siempre */}
+                        <div className="tag-row" style={{ marginBottom: '0.5rem' }}>
+                          {v.category_name && (
+                            <span className="tag">
+                              {v.category_emoji && `${v.category_emoji} `}{v.category_name}
+                            </span>
+                          )}
+                          {v.city_name && <span className="tag">{v.city_name}</span>}
+                          {v.bonus_points > 0 && (
+                            <span className="tag tag-green">+{v.bonus_points} pts bonus</span>
+                          )}
+                        </div>
+
+                        {/* Ver más / Ver menos */}
+                        <button
+                          className="verif-expand-btn"
+                          onClick={() => toggleVerifExpand(v.id)}
+                        >
+                          {isExpanded ? (
+                            <><ChevronDown size={13} style={{ transform: 'rotate(180deg)' }} /> Ver menos</>
+                          ) : (
+                            <><ChevronDown size={13} /> Ver más detalles</>
+                          )}
+                        </button>
+
+                        {/* Detalle expandido */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.22 }}
+                              style={{ overflow: 'hidden' }}
+                            >
+                              <div className="verif-detail">
+                                {v.pin_description && (
+                                  <div className="verif-detail-row">
+                                    <span className="verif-detail-label">Descripción</span>
+                                    <span className="verif-detail-value">{v.pin_description}</span>
+                                  </div>
+                                )}
+                                {v.latitude && v.longitude && (
+                                  <div className="verif-detail-row">
+                                    <span className="verif-detail-label">Coordenadas</span>
+                                    <span className="verif-detail-value">
+                                      {parseFloat(v.latitude).toFixed(5)}, {parseFloat(v.longitude).toFixed(5)}
+                                    </span>
+                                  </div>
+                                )}
+                                {v.city_name && (
+                                  <div className="verif-detail-row">
+                                    <span className="verif-detail-label">Ciudad</span>
+                                    <span className="verif-detail-value">{v.city_name}</span>
+                                  </div>
+                                )}
+                                {v.category_name && (
+                                  <div className="verif-detail-row">
+                                    <span className="verif-detail-label">Categoría</span>
+                                    <span className="verif-detail-value">
+                                      {v.category_emoji && `${v.category_emoji} `}{v.category_name}
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="verif-detail-row">
+                                  <span className="verif-detail-label">Usa producto 360</span>
+                                  <span className="verif-detail-value">{v.used_tresesenta ? 'Sí' : 'No'}</span>
+                                </div>
+                                {v.shoe_model && (
+                                  <div className="verif-detail-row">
+                                    <span className="verif-detail-label">Modelo</span>
+                                    <span className="verif-detail-value verif-detail-model">{v.shoe_model}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Imágenes */}
+                        {allImages.length > 0 && (
+                          <div className="verification-images">
+                            {allImages.map((img, i) => (
+                              <button
+                                key={i}
+                                className="verification-thumb-btn"
+                                onClick={() => openLightbox(allImages, i)}
+                                title={img.type === 'evidencia' ? 'Ver evidencia' : 'Ver imagen del pin'}
+                              >
+                                <img
+                                  src={img.url}
+                                  alt={img.type}
+                                  className={`verification-thumb ${img.type === 'evidencia' ? 'verification-evidence' : ''}`}
+                                />
+                                {img.type === 'evidencia' && (
+                                  <span className="thumb-badge-ev">Evidencia</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {confirmAction?.type === 'reject' && confirmAction.id === v.id ? (
+                          <div className="inline-confirm">
+                            <input
+                              className="inline-input"
+                              placeholder="Razon del rechazo..."
+                              value={actionInput}
+                              onChange={e => setActionInput(e.target.value)}
+                              autoFocus
+                            />
+                            <div className="inline-confirm-btns">
+                              <button
+                                className="btn-admin-action btn-reject"
+                                onClick={() => handleRejectVerification(v.id)}
+                                disabled={savingId === v.id}
+                              >
+                                Rechazar
+                              </button>
+                              <button
+                                className="btn-admin-action btn-neutral"
+                                onClick={() => { setConfirmAction(null); setActionInput(''); }}
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="verification-actions">
                             <button
-                              className="btn-admin-action btn-reject"
-                              onClick={() => handleRejectVerification(v.id)}
+                              className="btn-admin-action btn-approve"
+                              onClick={() => handleApproveVerification(v.id)}
                               disabled={savingId === v.id}
                             >
-                              Rechazar
+                              <Check size={14} /> Aprobar
                             </button>
                             <button
-                              className="btn-admin-action btn-neutral"
-                              onClick={() => { setConfirmAction(null); setActionInput(''); }}
+                              className="btn-admin-action btn-reject"
+                              onClick={() => { setConfirmAction({ type: 'reject', id: v.id }); setActionInput(''); }}
                             >
-                              Cancelar
+                              <X size={14} /> Rechazar
                             </button>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="verification-actions">
-                          <button
-                            className="btn-admin-action btn-approve"
-                            onClick={() => handleApproveVerification(v.id)}
-                            disabled={savingId === v.id}
-                          >
-                            <Check size={14} /> Aprobar
-                          </button>
-                          <button
-                            className="btn-admin-action btn-reject"
-                            onClick={() => { setConfirmAction({ type: 'reject', id: v.id }); setActionInput(''); }}
-                          >
-                            <X size={14} /> Rechazar
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </motion.div>
           )}
+        </AnimatePresence>
+      </div>
+
+      {/* Section: Historial */}
+      <div className="admin-section">
+        <SectionHeader
+          id="historial"
+          icon={History}
+          title="Historial de verificaciones"
+          badge={historial.filter(h => h.status === 'approved').length || 0}
+        />
+        <AnimatePresence>
+          {openSection === 'historial' && (() => {
+            const filtered = historial
+              .filter(h => h.status === historialTab)
+              .filter(h => {
+                if (!historialSearch) return true;
+                const q = historialSearch.toLowerCase();
+                return h.pin_title?.toLowerCase().includes(q) ||
+                       h.username?.toLowerCase().includes(q) ||
+                       h.reviewer_username?.toLowerCase().includes(q);
+              });
+            const totalPages = Math.max(1, Math.ceil(filtered.length / HISTORIAL_PAGE_SIZE));
+            const page = Math.min(historialPage, totalPages);
+            const pageItems = filtered.slice((page - 1) * HISTORIAL_PAGE_SIZE, page * HISTORIAL_PAGE_SIZE);
+
+            return (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="section-content"
+              >
+                <div className="section-body">
+                  {/* Tabs */}
+                  <div className="historial-tabs">
+                    <button
+                      className={`historial-tab ${historialTab === 'approved' ? 'active' : ''}`}
+                      onClick={() => { setHistorialTab('approved'); setHistorialPage(1); }}
+                    >
+                      Aprobadas
+                      <span className="historial-tab-count">
+                        {historial.filter(h => h.status === 'approved').length}
+                      </span>
+                    </button>
+                    <button
+                      className={`historial-tab ${historialTab === 'rejected' ? 'active' : ''}`}
+                      onClick={() => { setHistorialTab('rejected'); setHistorialPage(1); }}
+                    >
+                      Rechazadas
+                      <span className="historial-tab-count">
+                        {historial.filter(h => h.status === 'rejected').length}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Búsqueda */}
+                  <div className="search-wrapper" style={{ marginBottom: '0.75rem' }}>
+                    <Search size={15} className="search-icon" />
+                    <input
+                      className="admin-search"
+                      placeholder="Buscar pin, usuario o revisor..."
+                      value={historialSearch}
+                      onChange={e => { setHistorialSearch(e.target.value); setHistorialPage(1); }}
+                    />
+                  </div>
+
+                  {/* Lista */}
+                  {pageItems.length === 0 ? (
+                    <p className="section-empty">
+                      {historialSearch ? 'Sin resultados' : `No hay registros ${historialTab === 'approved' ? 'aprobados' : 'rechazados'}`}
+                    </p>
+                  ) : (
+                    pageItems.map(h => (
+                      <div key={h.pin_id} className="historial-row">
+                        <div className="historial-row-main">
+                          <span className="historial-row-title">{h.pin_title}</span>
+                          <span className="text-muted text-small">@{h.username}</span>
+                        </div>
+                        <div className="historial-row-meta">
+                          <span className="text-muted text-small">
+                            por <strong>@{h.reviewer_username || '—'}</strong>
+                          </span>
+                          <span className="text-muted text-small">
+                            {h.reviewed_at
+                              ? new Date(h.reviewed_at).toLocaleDateString('es-MX')
+                              : new Date(h.pin_created_at).toLocaleDateString('es-MX')}
+                          </span>
+                        </div>
+                        <div className="historial-row-actions">
+                          <button
+                            className="btn-admin-action btn-neutral btn-sm"
+                            onClick={() => setHistorialModal(h)}
+                          >
+                            <Eye size={12} /> Ver más
+                          </button>
+                          {h.status === 'approved' && (
+                            confirmAction?.type === 'historial-reject' && confirmAction.id === h.pin_id ? (
+                              <div className="inline-confirm">
+                                <input
+                                  className="inline-input"
+                                  placeholder="Razón del rechazo..."
+                                  value={actionInput}
+                                  onChange={e => setActionInput(e.target.value)}
+                                  autoFocus
+                                />
+                                <div className="inline-confirm-btns">
+                                  <button
+                                    className="btn-admin-action btn-reject btn-sm"
+                                    onClick={() => handleRejectFromHistorial(h.pin_id)}
+                                    disabled={savingId === h.pin_id}
+                                  >
+                                    Confirmar
+                                  </button>
+                                  <button
+                                    className="btn-admin-action btn-neutral btn-sm"
+                                    onClick={() => { setConfirmAction(null); setActionInput(''); }}
+                                  >
+                                    Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                className="btn-admin-action btn-reject btn-sm"
+                                onClick={() => { setConfirmAction({ type: 'historial-reject', id: h.pin_id }); setActionInput(''); }}
+                              >
+                                <X size={12} /> Rechazar
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+
+                  {/* Paginación */}
+                  {totalPages > 1 && (
+                    <div className="historial-pagination">
+                      <button
+                        className="historial-page-btn"
+                        onClick={() => setHistorialPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                      >
+                        <ChevronLeft size={14} />
+                      </button>
+                      <span className="historial-page-info">{page} / {totalPages}</span>
+                      <button
+                        className="historial-page-btn"
+                        onClick={() => setHistorialPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                      >
+                        <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })()}
         </AnimatePresence>
       </div>
 
@@ -625,7 +1114,6 @@ const AdminDashboard = () => {
               className="section-content"
             >
               <div className="section-body">
-                {/* Point Actions */}
                 <h4 className="subsection-title">Acciones de Puntos</h4>
                 <div className="point-actions-list">
                   {pointActions.map(a => (
@@ -670,7 +1158,6 @@ const AdminDashboard = () => {
                   ))}
                 </div>
 
-                {/* System Settings */}
                 <h4 className="subsection-title" style={{ marginTop: '1.5rem' }}>Configuracion del Sistema</h4>
                 {settings.map(s => (
                   <div key={s.setting_key} className="setting-row">
