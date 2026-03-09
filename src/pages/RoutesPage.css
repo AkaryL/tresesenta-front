@@ -1,139 +1,232 @@
-/* ============================
+/* ============================================================
    ROUTES PAGE
-   ============================ */
+   ============================================================ */
 .routes-page {
   min-height: 100vh;
-  background: #faf9f7;
+  background: #f7f5f2;
   padding-bottom: 80px;
-  display: flex;
-  flex-direction: column;
 }
 
-.routes-header-minimal {
+/* ── Header ──────────────────────────────────────────────── */
+.routes-header {
+  background: #fff;
+  padding: 1.25rem 1.25rem 0.875rem;
+  border-bottom: 1px solid #ede9e3;
   position: sticky;
   top: 0;
-  background: #faf9f7;
-  padding: 1rem 1.25rem 0.875rem;
-  border-bottom: 1px solid #ede9e3;
   z-index: 100;
 }
 
 .routes-header-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.routes-header-minimal h1 {
-  font-size: 1.75rem;
+.routes-header-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #b89b7a;
+  margin: 0 0 0.15rem;
+  text-transform: uppercase;
+}
+
+.routes-magazine-title {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 2.75rem;
   font-weight: 700;
   color: #1a1a18;
   margin: 0;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
 }
 
 .routes-subtitle {
-  font-size: 0.8125rem;
-  color: #888;
-  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: #aaa;
+  margin: 0.35rem 0 0;
+  font-style: italic;
 }
 
+/* ── Filters ─────────────────────────────────────────────── */
+.routes-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.routes-filter-input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid #e5e1da;
+  border-radius: 20px;
+  padding: 0 1rem;
+  font-size: 0.825rem;
+  background: #f7f5f2;
+  outline: none;
+  color: #1a1a18;
+  box-sizing: border-box;
+}
+.routes-filter-input::placeholder { color: #bbb; }
+
+.routes-filter-chips {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 1px;
+}
+.routes-filter-chips::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  flex-shrink: 0;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  border: 1.5px solid #e0ddd8;
+  background: #fff;
+  color: #666;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.filter-chip.active {
+  background: #1a1a18;
+  border-color: #1a1a18;
+  color: #fff;
+}
+
+/* ── Grid ────────────────────────────────────────────────── */
 .routes-content {
   padding: 1.25rem 1rem 1rem;
 }
 
-/* ============================
-   ROUTE GRID & CARDS
-   ============================ */
 .routes-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
+/* ── Route Card ──────────────────────────────────────────── */
 .route-card {
   background: #fff;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid #ede9e3;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   cursor: pointer;
   transition: transform 0.18s, box-shadow 0.18s;
-  border: 1px solid #ede9e3;
 }
-
 .route-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.09);
 }
 
-.route-image {
+.route-card-img {
   width: 100%;
-  height: 180px;
-  background: #e8e5e0;
-  overflow: hidden;
+  height: 190px;
+  background: #e8e4de;
   position: relative;
+  overflow: hidden;
 }
 
-.route-image img {
+.route-carousel-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.7s ease;
 }
+.route-carousel-img.active { opacity: 1; }
 
-.route-image-placeholder {
+.route-img-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e8e5e0, #d6cfc4);
-  font-size: 3rem;
+  background: linear-gradient(135deg, #e8e4de, #d6cfc4);
+  font-size: 3.5rem;
 }
+
+/* Overlaid badges */
+.btn-save-route {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  border: none;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  z-index: 3;
+  transition: color 0.2s, background 0.2s;
+}
+.btn-save-route.saved { color: #e84040; }
+.btn-save-route:hover { background: #fff; }
 
 .route-official-badge {
   position: absolute;
   top: 10px;
   left: 10px;
-  background: rgba(0,0,0,0.65);
+  background: rgba(0,0,0,0.6);
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  padding: 0.25rem 0.6rem;
+  padding: 0.22rem 0.55rem;
   border-radius: 20px;
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
   backdrop-filter: blur(4px);
 }
 
-.route-content {
-  padding: 1rem 1.125rem 1.125rem;
+.route-distance-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0,0,0,0.58);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.22rem 0.55rem;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
 }
 
-.route-emoji-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
-}
-
-.route-emoji {
-  font-size: 1.25rem;
-  line-height: 1;
+/* Card body */
+.route-card-body {
+  padding: 0.875rem 1rem 1rem;
 }
 
 .route-title {
-  font-size: 1rem;
+  font-size: 0.975rem;
   font-weight: 700;
   color: #1a1a18;
-  margin: 0;
-  line-height: 1.3;
+  margin: 0 0 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  line-height: 1.25;
 }
+.route-title-emoji { font-size: 1.1rem; }
 
-.route-description {
-  font-size: 0.825rem;
-  color: #666;
-  margin: 0 0 0.75rem;
+.route-desc {
+  font-size: 0.8rem;
+  color: #777;
+  margin: 0 0 0.625rem;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -144,109 +237,86 @@
 .route-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.625rem;
   align-items: center;
 }
-
-.route-meta-item {
+.route-meta span {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.775rem;
-  color: #888;
+  font-size: 0.75rem;
+  color: #999;
 }
-
-.route-creator {
-  font-style: italic;
-  color: #aaa;
-}
+.route-meta-creator { font-style: italic; color: #bbb !important; }
 
 /* Skeleton */
-.route-skeleton .route-image { background: #eee; }
-.skel-title {
-  height: 16px;
-  width: 70%;
+.route-skeleton .route-card-img { background: #eee; }
+.skel-line {
+  height: 12px;
   background: #eee;
   border-radius: 6px;
   margin-bottom: 0.5rem;
 }
-.skel-desc {
-  height: 12px;
-  width: 90%;
-  background: #eee;
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
-}
-.skel-meta {
-  height: 12px;
-  width: 50%;
-  background: #eee;
-  border-radius: 6px;
-}
+.w70 { width: 70%; }
+.w90 { width: 90%; }
+.w50 { width: 50%; }
 
-/* Empty state */
+/* Empty */
 .routes-empty {
   text-align: center;
   padding: 4rem 1rem;
-  color: #aaa;
+  color: #ccc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
-.routes-empty svg { margin-bottom: 1rem; opacity: 0.35; }
-.routes-empty h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #555;
-  margin: 0 0 0.5rem;
-}
-.routes-empty p { font-size: 0.875rem; margin: 0 0 1.5rem; }
+.routes-empty h3 { font-size: 1rem; color: #666; margin: 0; }
+.routes-empty p { font-size: 0.85rem; color: #aaa; margin: 0; }
 
-/* ============================
-   BUTTONS
-   ============================ */
+/* ── Buttons ─────────────────────────────────────────────── */
 .btn-create-route {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   background: #1a1a18;
   color: #fff;
   border: none;
   border-radius: 20px;
-  padding: 0.5rem 1.1rem;
-  font-size: 0.875rem;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
-  transition: opacity 0.15s;
   flex-shrink: 0;
+  transition: opacity 0.15s;
 }
 .btn-create-route:hover { opacity: 0.8; }
 
-.btn-google-maps-full {
+.btn-gmaps {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.9rem;
+  padding: 0.875rem;
   background: #1a1a18;
   color: #fff;
   border: none;
   border-radius: 12px;
-  font-size: 0.95rem;
+  font-size: 0.925rem;
   font-weight: 600;
   cursor: pointer;
+  margin-top: 0.75rem;
   transition: opacity 0.15s;
-  margin-top: 0.5rem;
 }
-.btn-google-maps-full:hover { opacity: 0.85; }
-.btn-google-maps-full:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-gmaps:hover { opacity: 0.85; }
+.btn-gmaps:disabled { opacity: 0.38; cursor: not-allowed; }
 
-/* ============================
-   ROUTE DETAIL MODAL
-   ============================ */
-.route-modal-overlay {
+/* ── Modals ──────────────────────────────────────────────── */
+.modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.48);
   z-index: 1000;
   display: flex;
   align-items: flex-end;
@@ -254,23 +324,23 @@
 
 .route-modal {
   background: #fff;
-  border-radius: 20px 20px 0 0;
+  border-radius: 22px 22px 0 0;
   width: 100%;
-  max-height: 88vh;
+  max-height: 90vh;
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
   -webkit-overflow-scrolling: touch;
 }
 
-.modal-close {
+.modal-close-btn {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.45);
   border: none;
   color: #fff;
   cursor: pointer;
@@ -280,29 +350,25 @@
   z-index: 10;
 }
 
-.modal-header {
+.modal-cover {
   width: 100%;
-  height: 220px;
+  height: 210px;
   overflow: hidden;
   flex-shrink: 0;
 }
-.modal-header img {
+.modal-cover img { width: 100%; height: 100%; object-fit: cover; }
+.modal-cover-placeholder {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-}
-.modal-header-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #e8e5e0, #d6cfc4);
+  background: linear-gradient(135deg, #e8e4de, #d0c9bf);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4rem;
 }
 
-.modal-content {
-  padding: 1.25rem 1.25rem 2rem;
+.modal-body {
+  padding: 1.25rem 1.25rem 2.5rem;
 }
 
 .modal-title-row {
@@ -311,124 +377,111 @@
   gap: 0.625rem;
   margin-bottom: 0.5rem;
 }
-.modal-emoji { font-size: 1.5rem; }
+.modal-emoji-big { font-size: 1.625rem; }
 .modal-title-row h2 {
-  font-size: 1.25rem;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 1.375rem;
   font-weight: 700;
   color: #1a1a18;
   margin: 0;
+  line-height: 1.2;
 }
 
 .modal-desc {
   font-size: 0.875rem;
   color: #666;
-  line-height: 1.55;
+  line-height: 1.6;
   margin: 0 0 1rem;
 }
 
-.modal-meta {
+.modal-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
 }
-.modal-meta span {
-  display: flex;
+.tag {
+  display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.775rem;
+  gap: 0.25rem;
+  font-size: 0.75rem;
   background: #f5f3f0;
   color: #555;
   padding: 0.25rem 0.625rem;
   border-radius: 20px;
 }
-.meta-official {
-  background: #1a1a18 !important;
-  color: #fff !important;
-}
-.meta-creator { font-style: italic; }
+.tag-official { background: #1a1a18; color: #fff; }
 
-/* ============================
-   PIN CARDS IN MODAL
-   ============================ */
-.modal-pins-title {
-  font-size: 0.875rem;
+.modal-section-title {
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #1a1a18;
-  margin: 0 0 0.75rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: #aaa;
+  margin: 0 0 0.75rem;
 }
 
-.modal-pins-cards {
+/* ── Pin cards in modal ──────────────────────────────────── */
+.pins-list {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
-  margin-bottom: 1.25rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
-.modal-pin-card {
+.pin-card {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #f8f7f5;
+  background: #f8f6f3;
   border: 1px solid #ede9e3;
   border-radius: 12px;
-  padding: 0.625rem 0.875rem 0.625rem 0.625rem;
+  padding: 0.625rem;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.14s;
 }
-.modal-pin-card:hover {
-  background: #f0ede8;
-  border-color: #d6cfc4;
-}
+.pin-card:hover { background: #f0ece6; }
 
-.modal-pin-card-img {
-  width: 52px;
-  height: 52px;
+.pin-card-img {
+  width: 50px;
+  height: 50px;
   border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
-  background: #e8e5e0;
+  background: #e8e4de;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
 }
-.modal-pin-card-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.modal-pin-card-emoji { font-size: 1.5rem; }
+.pin-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.pin-card-emoji { font-size: 1.5rem; }
 
-.modal-pin-card-num {
+.pin-card-num {
   position: absolute;
-  bottom: 3px;
-  right: 3px;
-  width: 18px;
-  height: 18px;
+  bottom: 2px;
+  right: 2px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   background: #1a1a18;
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.modal-pin-card-info {
+.pin-card-info {
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
-
-.modal-pin-cat-emoji { font-size: 1rem; flex-shrink: 0; }
-
-.modal-pin-card-name {
+.pin-cat-emoji { font-size: 1rem; flex-shrink: 0; }
+.pin-card-name {
   font-size: 0.875rem;
   font-weight: 600;
   color: #1a1a18;
@@ -437,144 +490,114 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.modal-pin-card-loc {
-  font-size: 0.75rem;
-  color: #999;
-  margin: 0;
-}
+.pin-card-loc { font-size: 0.72rem; color: #aaa; margin: 0; }
+.pin-card-arrow { font-size: 1.25rem; color: #ccc; flex-shrink: 0; }
 
-.modal-pin-card-arrow {
-  font-size: 1rem;
-  color: #bbb;
-  flex-shrink: 0;
-}
-
-.modal-pins-loading {
+.pins-loading {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
-  margin-bottom: 1.25rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
-.modal-pin-skeleton {
-  height: 68px;
-  background: #eee;
-  border-radius: 12px;
-}
+.pin-card-skeleton { height: 66px; background: #eee; border-radius: 12px; }
 
-/* ============================
-   CREATE ROUTE MODAL
-   ============================ */
-.create-route-modal .modal-content { padding-top: 2rem; }
+/* ── Create modal fields ─────────────────────────────────── */
+.create-hint { font-size: 0.825rem; color: #bbb; margin: 0.25rem 0 1.25rem; }
 
-.create-route-hint {
-  font-size: 0.825rem;
-  color: #999;
-  margin: 0.25rem 0 1.25rem;
-}
-
-.create-route-title-row {
+.create-title-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
 }
-
-.create-route-emoji {
-  width: 50px;
+.create-emoji-input {
+  width: 48px;
   height: 44px;
   text-align: center;
   font-size: 1.4rem;
-  border: 1px solid #e0ddd8;
+  border: 1px solid #e5e1da;
   border-radius: 10px;
-  background: #f5f4f2;
+  background: #f7f5f2;
   outline: none;
+  flex-shrink: 0;
 }
-
-.create-route-title-input {
+.create-text-input {
   flex: 1;
   height: 44px;
-  border: 1px solid #e0ddd8;
+  border: 1px solid #e5e1da;
   border-radius: 10px;
   padding: 0 0.875rem;
-  font-size: 0.95rem;
-  background: #f5f4f2;
+  font-size: 0.925rem;
+  background: #f7f5f2;
   outline: none;
   color: #1a1a18;
 }
-
-.create-route-desc {
+.create-textarea,
+.create-select {
   width: 100%;
-  border: 1px solid #e0ddd8;
+  border: 1px solid #e5e1da;
   border-radius: 10px;
   padding: 0.6rem 0.875rem;
   font-size: 0.875rem;
-  background: #f5f4f2;
-  resize: none;
+  background: #f7f5f2;
   outline: none;
   margin-bottom: 0.75rem;
   box-sizing: border-box;
   color: #1a1a18;
+  resize: none;
 }
+.create-select { height: 44px; }
 
-.create-route-pins-title {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: #1a1a18;
-  margin: 0 0 0.75rem;
+.create-pins-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  margin-bottom: 0.75rem;
 }
-
-.pins-selected-count {
-  font-size: 0.725rem;
+.create-pins-header h3 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #888;
+  margin: 0;
+}
+.pins-badge {
+  font-size: 0.72rem;
   background: #1a1a18;
   color: #fff;
   border-radius: 20px;
-  padding: 0.15rem 0.625rem;
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: 0;
+  padding: 0.15rem 0.6rem;
 }
 
-.create-route-no-pins {
-  text-align: center;
-  color: #aaa;
-  font-size: 0.875rem;
-  padding: 1.5rem 0;
-}
+.create-empty-pins { text-align: center; color: #bbb; font-size: 0.875rem; padding: 1.5rem 0; }
 
-.create-route-pins-list {
+.create-pins-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-height: 280px;
+  max-height: 270px;
   overflow-y: auto;
   margin-bottom: 1.25rem;
   -webkit-overflow-scrolling: touch;
 }
 
-.create-route-pin-item {
+.picker-pin {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #f5f4f2;
+  background: #f7f5f2;
   border: 1.5px solid transparent;
   border-radius: 10px;
   padding: 0.5rem 0.75rem;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
   text-align: left;
   width: 100%;
+  transition: border-color 0.14s, background 0.14s;
 }
-.create-route-pin-item.selected {
-  border-color: #1a1a18;
-  background: #eeece8;
-}
+.picker-pin.selected { border-color: #1a1a18; background: #eeeae5; }
 
-.pin-picker-img {
+.picker-pin-img {
   width: 42px;
   height: 42px;
   border-radius: 8px;
@@ -586,89 +609,48 @@
   justify-content: center;
   font-size: 1.25rem;
 }
-.pin-picker-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.picker-pin-img img { width: 100%; height: 100%; object-fit: cover; }
+.picker-pin-info { flex: 1; min-width: 0; }
+.picker-pin-name { font-size: 0.875rem; font-weight: 600; color: #1a1a18; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.picker-pin-loc { font-size: 0.75rem; color: #bbb; margin: 0; }
+.picker-num { width: 24px; height: 24px; border-radius: 50%; background: #1a1a18; color: #fff; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.picker-add { font-size: 1.25rem; color: #ccc; flex-shrink: 0; }
 
-.pin-picker-info { flex: 1; min-width: 0; }
-.pin-picker-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1a1a18;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.pin-picker-loc {
-  font-size: 0.75rem;
-  color: #999;
-  margin: 0;
-}
-.pin-picker-order {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #1a1a18;
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.pin-picker-add {
-  font-size: 1.25rem;
-  color: #ccc;
-  flex-shrink: 0;
-}
-
-/* ============================
-   DESKTOP
-   ============================ */
+/* ── Desktop ─────────────────────────────────────────────── */
 @media (min-width: 1024px) {
-  .routes-page {
-    padding-bottom: 0;
-  }
+  .routes-page { padding-bottom: 0; }
   .routes-page .bottom-nav { display: none !important; }
 
-  .routes-header-minimal {
-    max-width: 900px;
+  .routes-header {
+    max-width: 960px;
     margin: 1.5rem auto 0;
-    padding: 1.25rem 2rem;
-    border: 1px solid #ede9e3;
     border-radius: 16px 16px 0 0;
+    border: 1px solid #ede9e3;
     position: static;
   }
 
+  .routes-filter-bar { flex-direction: row; align-items: center; gap: 0.75rem; }
+  .routes-filter-input { width: 220px; flex-shrink: 0; }
+
   .routes-content {
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto 3rem;
-    padding: 1.5rem 2rem;
+    padding: 1.5rem 1.5rem;
+    background: #fff;
     border: 1px solid #ede9e3;
     border-top: none;
     border-radius: 0 0 16px 16px;
-    background: #fff;
   }
 
-  .routes-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-  }
+  .routes-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
 
-  .route-modal-overlay {
-    align-items: center;
-    padding: 2rem;
-  }
-  .route-modal {
-    border-radius: 20px;
-    max-width: 520px;
-    max-height: 85vh;
-    width: 100%;
-    margin: auto;
-  }
+  .modal-overlay { align-items: center; padding: 2rem; }
+  .route-modal { border-radius: 20px; max-width: 500px; max-height: 85vh; width: 100%; margin: auto; }
+
+  .routes-magazine-title { font-size: 3.5rem; }
+}
+
+@media (min-width: 1280px) {
+  .routes-header, .routes-content { max-width: 1100px; }
+  .routes-grid { grid-template-columns: repeat(3, 1fr); }
 }

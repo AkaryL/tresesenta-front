@@ -1,13 +1,51 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Clock, Users, Star, Navigation, Plus, ExternalLink, X } from 'lucide-react';
+import { MapPin, Clock, Users, Star, Navigation, Plus, ExternalLink, X, Heart, SlidersHorizontal } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import DesktopHeader from '../components/DesktopHeader';
 import { routesAPI } from '../services/api';
 import './RoutesPage.css';
-import './Auth.css';
 
+// ─── Haversine ────────────────────────────────────────────────────────────────
+const haversine = (lat1, lng1, lat2, lng2) => {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const formatDist = (km) => km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+
+// ─── Carousel cover ───────────────────────────────────────────────────────────
+const RouteCardCover = ({ images }) => {
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    if (!images || images.length <= 1) return;
+    const t = setInterval(() => setIdx(i => (i + 1) % images.length), 2500);
+    return () => clearInterval(t);
+  }, [images]);
+
+  if (!images || images.length === 0) return null;
+
+  return images.map((url, i) => (
+    <img
+      key={i}
+      src={url}
+      alt=""
+      className={`route-carousel-img ${i === idx ? 'active' : ''}`}
+    />
+  ));
+};
+
+// ─── Duration options ─────────────────────────────────────────────────────────
+const DURATION_OPTIONS = ['1-2 horas', 'Medio día', '1 día', 'Fin de semana'];
+
+// ─── Component ────────────────────────────────────────────────────────────────
 const RoutesPage = () => {
   const navigate = useNavigate();
   const [routes, setRoutes] = useState([]);
@@ -15,49 +53,101 @@ const RoutesPage = () => {
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [routeDetail, setRouteDetail] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [savedIds, setSavedIds] = useState(new Set());
+  const [userLocation, setUserLocation] = useState(null);
+  const [filter, setFilter] = useState({ search: '', duration: '' });
+  const [showFilters, setShowFilters] = useState(false);
 
   // Create route state
   const [showCreate, setShowCreate] = useState(false);
   const [myPins, setMyPins] = useState([]);
   const [creating, setCreating] = useState(false);
   const [newRoute, setNewRoute] = useState({
-    title: '',
-    description: '',
-    emoji: '🗺️',
-    estimated_time: '',
-    pin_ids: [],
+    title: '', description: '', emoji: '🗺️', estimated_time: '', pin_ids: [],
   });
 
   useEffect(() => {
     routesAPI.getAll()
-      .then(r => setRoutes(r.data.routes || []))
+      .then(r => {
+        const fetched = r.data.routes || [];
+        setRoutes(fetched);
+        setSavedIds(new Set(fetched.filter(r => r.is_saved).map(r => r.id)));
+      })
       .catch(e => console.error('Error fetching routes:', e))
       .finally(() => setLoading(false));
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {}
+      );
+    }
   }, []);
 
+  // ── Filtering + sorting ──────────────────────────────────────────────────────
+  const filteredRoutes = useMemo(() => {
+    let list = routes.filter(r => {
+      if (filter.search) {
+        const q = filter.search.toLowerCase();
+        if (!r.title.toLowerCase().includes(q) && !(r.description || '').toLowerCase().includes(q)) return false;
+      }
+      if (filter.duration && r.estimated_time !== filter.duration) return false;
+      return true;
+    });
+
+    list = list.map(r => {
+      let dist = null;
+      if (userLocation && r.first_lat && r.first_lng) {
+        dist = haversine(userLocation.lat, userLocation.lng, parseFloat(r.first_lat), parseFloat(r.first_lng));
+      }
+      return { ...r, _dist: dist };
+    });
+
+    list.sort((a, b) => {
+      const aSaved = savedIds.has(a.id) ? 0 : 1;
+      const bSaved = savedIds.has(b.id) ? 0 : 1;
+      if (aSaved !== bSaved) return aSaved - bSaved;
+      if (a._dist !== null && b._dist !== null) return a._dist - b._dist;
+      if (a._dist !== null) return -1;
+      if (b._dist !== null) return 1;
+      return 0;
+    });
+
+    return list;
+  }, [routes, filter, userLocation, savedIds]);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────────
   const handleSelectRoute = async (route) => {
     setSelectedRoute(route);
     setRouteDetail(null);
     setLoadingDetail(true);
     try {
-      const response = await routesAPI.getById(route.id);
-      setRouteDetail(response.data.route);
-    } catch (error) {
-      console.error('Error fetching route detail:', error);
+      const res = await routesAPI.getById(route.id);
+      setRouteDetail(res.data.route);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoadingDetail(false);
     }
   };
 
-  const closeModal = () => {
-    setSelectedRoute(null);
-    setRouteDetail(null);
+  const closeModal = () => { setSelectedRoute(null); setRouteDetail(null); };
+
+  const handleSave = async (e, routeId) => {
+    e.stopPropagation();
+    try {
+      const res = await routesAPI.saveRoute(routeId);
+      setSavedIds(prev => {
+        const next = new Set(prev);
+        res.data.saved ? next.add(routeId) : next.delete(routeId);
+        return next;
+      });
+    } catch (e) { console.error(e); }
   };
 
   const openInGoogleMaps = (pins) => {
-    if (!pins || pins.length === 0) return;
-    const waypoints = pins.map(p => `${p.latitude},${p.longitude}`).join('/');
-    window.open(`https://www.google.com/maps/dir/${waypoints}`, '_blank');
+    if (!pins?.length) return;
+    window.open(`https://www.google.com/maps/dir/${pins.map(p => `${p.latitude},${p.longitude}`).join('/')}`, '_blank');
   };
 
   const openCreate = async () => {
@@ -65,19 +155,13 @@ const RoutesPage = () => {
     try {
       const res = await routesAPI.getMyPins();
       setMyPins(res.data.pins || []);
-    } catch (e) {
-      console.error('Error loading pins:', e);
-    }
+    } catch (e) { console.error(e); }
   };
 
-  const togglePin = (pinId) => {
-    setNewRoute(prev => ({
-      ...prev,
-      pin_ids: prev.pin_ids.includes(pinId)
-        ? prev.pin_ids.filter(id => id !== pinId)
-        : [...prev.pin_ids, pinId],
-    }));
-  };
+  const togglePin = (id) => setNewRoute(prev => ({
+    ...prev,
+    pin_ids: prev.pin_ids.includes(id) ? prev.pin_ids.filter(p => p !== id) : [...prev.pin_ids, id],
+  }));
 
   const handleCreateRoute = async () => {
     if (!newRoute.title.trim() || newRoute.pin_ids.length === 0) return;
@@ -85,7 +169,9 @@ const RoutesPage = () => {
     try {
       await routesAPI.create(newRoute);
       const res = await routesAPI.getAll();
-      setRoutes(res.data.routes || []);
+      const fetched = res.data.routes || [];
+      setRoutes(fetched);
+      setSavedIds(new Set(fetched.filter(r => r.is_saved).map(r => r.id)));
       setShowCreate(false);
       setNewRoute({ title: '', description: '', emoji: '🗺️', estimated_time: '', pin_ids: [] });
     } catch (e) {
@@ -97,213 +183,214 @@ const RoutesPage = () => {
 
   const getCoverImage = (route) => route.cover_image_url || null;
 
+  // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div className="routes-page">
       <DesktopHeader />
 
-      <div className="routes-header-minimal">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <div className="routes-header">
         <div className="routes-header-top">
-          <div>
-            <h1>Rutas</h1>
+          <div className="routes-header-text">
+            <p className="routes-header-eyebrow">TRESESENTA</p>
+            <h1 className="routes-magazine-title">Rutas</h1>
             <p className="routes-subtitle">Playlists de lugares por la comunidad</p>
           </div>
           <button className="btn-create-route" onClick={openCreate}>
-            <Plus size={18} />
-            <span>Crear</span>
+            <Plus size={16} /><span>Crear</span>
           </button>
+        </div>
+
+        {/* Filter bar */}
+        <div className="routes-filter-bar">
+          <input
+            className="routes-filter-input"
+            placeholder="Buscar ruta..."
+            value={filter.search}
+            onChange={e => setFilter(f => ({ ...f, search: e.target.value }))}
+          />
+          <div className="routes-filter-chips">
+            {DURATION_OPTIONS.map(d => (
+              <button
+                key={d}
+                className={`filter-chip ${filter.duration === d ? 'active' : ''}`}
+                onClick={() => setFilter(f => ({ ...f, duration: f.duration === d ? '' : d }))}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
+      {/* ── Grid ───────────────────────────────────────────────────────────── */}
       <div className="routes-content">
         {loading ? (
           <div className="routes-grid">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="route-card route-skeleton">
-                <div className="route-image" />
-                <div className="route-content">
-                  <div className="skel-title" />
-                  <div className="skel-desc" />
-                  <div className="skel-meta" />
+                <div className="route-card-img" />
+                <div className="route-card-body">
+                  <div className="skel-line w70" /><div className="skel-line w90" /><div className="skel-line w50" />
                 </div>
               </div>
             ))}
           </div>
-        ) : routes.length === 0 ? (
+        ) : filteredRoutes.length === 0 ? (
           <div className="routes-empty">
-            <Navigation size={48} strokeWidth={1} />
-            <h3>Aún no hay rutas</h3>
-            <p>Crea la primera ruta con tus pins favoritos.</p>
-            <button className="btn-create-route" onClick={openCreate}>
-              <Plus size={16} /> Crear mi primera ruta
-            </button>
+            <Navigation size={40} strokeWidth={1.5} />
+            <h3>Sin rutas</h3>
+            <p>{routes.length === 0 ? 'Crea la primera ruta con tus pins.' : 'Ninguna ruta coincide con el filtro.'}</p>
+            {routes.length === 0 && (
+              <button className="btn-create-route" onClick={openCreate}><Plus size={14} />Crear ruta</button>
+            )}
           </div>
         ) : (
           <div className="routes-grid">
-            {routes.map((route, index) => (
-              <motion.div
+            {filteredRoutes.map((route, index) => (
+              <motion.article
                 key={route.id}
                 className="route-card"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.07 }}
+                transition={{ delay: index * 0.06 }}
                 onClick={() => handleSelectRoute(route)}
               >
-                <div className="route-image">
-                  {getCoverImage(route) ? (
-                    <img src={getCoverImage(route)} alt={route.title} />
+                {/* Cover image carousel */}
+                <div className="route-card-img">
+                  {route.pin_images?.length > 0 ? (
+                    <RouteCardCover images={route.pin_images} />
+                  ) : getCoverImage(route) ? (
+                    <img src={getCoverImage(route)} alt={route.title} className="route-carousel-img active" />
                   ) : (
-                    <div className="route-image-placeholder">
+                    <div className="route-img-placeholder">
                       <span>{route.emoji || '🗺️'}</span>
                     </div>
                   )}
+
+                  {/* Save button */}
+                  <button
+                    className={`btn-save-route ${savedIds.has(route.id) ? 'saved' : ''}`}
+                    onClick={e => handleSave(e, route.id)}
+                    aria-label="Guardar ruta"
+                  >
+                    <Heart size={15} fill={savedIds.has(route.id) ? 'currentColor' : 'none'} />
+                  </button>
+
+                  {/* Official badge */}
                   {route.is_official && (
                     <div className="route-official-badge">
-                      <Star size={11} fill="currentColor" />
-                      Oficial
+                      <Star size={10} fill="currentColor" /> Oficial
                     </div>
+                  )}
+
+                  {/* Distance badge */}
+                  {route._dist !== null && (
+                    <div className="route-distance-badge">{formatDist(route._dist)}</div>
                   )}
                 </div>
 
-                <div className="route-content">
-                  <div className="route-emoji-title">
-                    <span className="route-emoji">{route.emoji || '🗺️'}</span>
-                    <h3 className="route-title">{route.title}</h3>
-                  </div>
-                  {route.description && (
-                    <p className="route-description">{route.description}</p>
-                  )}
-
+                {/* Card body */}
+                <div className="route-card-body">
+                  <h3 className="route-title">
+                    <span className="route-title-emoji">{route.emoji || '🗺️'}</span>
+                    {route.title}
+                  </h3>
+                  {route.description && <p className="route-desc">{route.description}</p>}
                   <div className="route-meta">
-                    <div className="route-meta-item">
-                      <MapPin size={13} />
-                      <span>{route.total_pins} paradas</span>
-                    </div>
-                    {route.estimated_time && (
-                      <div className="route-meta-item">
-                        <Clock size={13} />
-                        <span>{route.estimated_time}</span>
-                      </div>
-                    )}
-                    {route.creator_username && !route.is_official && (
-                      <div className="route-meta-item route-creator">
-                        <span>@{route.creator_username}</span>
-                      </div>
+                    <span><MapPin size={12} />{route.total_pins} paradas</span>
+                    {route.estimated_time && <span><Clock size={12} />{route.estimated_time}</span>}
+                    {!route.is_official && route.creator_username && (
+                      <span className="route-meta-creator">@{route.creator_username}</span>
                     )}
                   </div>
                 </div>
-              </motion.div>
+              </motion.article>
             ))}
           </div>
         )}
       </div>
 
-      {/* Route Detail Modal */}
+      {/* ── Detail Modal ────────────────────────────────────────────────────── */}
       <AnimatePresence>
         {selectedRoute && (
-          <motion.div
-            className="route-modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeModal}
-          >
+          <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeModal}>
             <motion.div
               className="route-modal"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 320 }}
               onClick={e => e.stopPropagation()}
             >
-              <button className="modal-close" onClick={closeModal}><X size={18} /></button>
+              <button className="modal-close-btn" onClick={closeModal}><X size={16} /></button>
 
-              {/* Cover image */}
-              <div className="modal-header">
+              {/* Cover */}
+              <div className="modal-cover">
                 {getCoverImage(selectedRoute) ? (
                   <img src={getCoverImage(selectedRoute)} alt={selectedRoute.title} />
+                ) : (selectedRoute.pin_images?.length > 0) ? (
+                  <img src={selectedRoute.pin_images[0]} alt={selectedRoute.title} />
                 ) : (
-                  <div className="modal-header-placeholder">
-                    <span>{selectedRoute.emoji || '🗺️'}</span>
-                  </div>
+                  <div className="modal-cover-placeholder"><span>{selectedRoute.emoji || '🗺️'}</span></div>
                 )}
               </div>
 
-              <div className="modal-content">
+              <div className="modal-body">
                 <div className="modal-title-row">
-                  <span className="modal-emoji">{selectedRoute.emoji || '🗺️'}</span>
+                  <span className="modal-emoji-big">{selectedRoute.emoji || '🗺️'}</span>
                   <h2>{selectedRoute.title}</h2>
                 </div>
 
-                {selectedRoute.description && (
-                  <p className="modal-desc">{selectedRoute.description}</p>
-                )}
+                {selectedRoute.description && <p className="modal-desc">{selectedRoute.description}</p>}
 
-                <div className="modal-meta">
-                  {selectedRoute.is_official && (
-                    <span className="meta-official">
-                      <Star size={11} fill="currentColor" /> Oficial
-                    </span>
-                  )}
-                  {selectedRoute.creator_username && !selectedRoute.is_official && (
-                    <span className="meta-creator">@{selectedRoute.creator_username}</span>
-                  )}
-                  <span><MapPin size={12} /> {selectedRoute.total_pins} paradas</span>
-                  {selectedRoute.estimated_time && (
-                    <span><Clock size={12} /> {selectedRoute.estimated_time}</span>
-                  )}
-                  {selectedRoute.completions_count > 0 && (
-                    <span><Users size={12} /> {selectedRoute.completions_count}</span>
-                  )}
+                <div className="modal-tags">
+                  {selectedRoute.is_official && <span className="tag tag-official"><Star size={10} fill="currentColor" /> Oficial</span>}
+                  {!selectedRoute.is_official && selectedRoute.creator_username && <span className="tag">@{selectedRoute.creator_username}</span>}
+                  <span className="tag"><MapPin size={11} /> {selectedRoute.total_pins} paradas</span>
+                  {selectedRoute.estimated_time && <span className="tag"><Clock size={11} /> {selectedRoute.estimated_time}</span>}
                 </div>
 
-                {/* Pins as cards */}
+                {/* Pins */}
+                <h3 className="modal-section-title">Paradas</h3>
                 {loadingDetail ? (
-                  <div className="modal-pins-loading">
-                    {[1, 2, 3].map(i => <div key={i} className="modal-pin-skeleton" />)}
+                  <div className="pins-loading">
+                    {[1, 2, 3].map(i => <div key={i} className="pin-card-skeleton" />)}
                   </div>
-                ) : routeDetail?.pins?.length > 0 && (
-                  <div className="modal-pins">
-                    <h3 className="modal-pins-title">Paradas</h3>
-                    <div className="modal-pins-cards">
-                      {routeDetail.pins.map((pin, i) => (
-                        <div
-                          key={pin.id}
-                          className="modal-pin-card"
-                          onClick={() => {
-                            closeModal();
-                            navigate(`/map?lat=${pin.latitude}&lng=${pin.longitude}&zoom=16`);
-                          }}
-                        >
-                          <div className="modal-pin-card-img">
-                            {pin.image_urls?.[0]
-                              ? <img src={pin.image_urls[0]} alt={pin.title} />
-                              : <span className="modal-pin-card-emoji">{pin.category_emoji || '📍'}</span>
-                            }
-                            <span className="modal-pin-card-num">{i + 1}</span>
-                          </div>
-                          <div className="modal-pin-card-info">
-                            <span className="modal-pin-cat-emoji">{pin.category_emoji}</span>
-                            <div>
-                              <p className="modal-pin-card-name">{pin.title}</p>
-                              {pin.location_name && (
-                                <p className="modal-pin-card-loc">{pin.location_name}</p>
-                              )}
-                            </div>
-                          </div>
-                          <span className="modal-pin-card-arrow">→</span>
+                ) : routeDetail?.pins?.length > 0 ? (
+                  <div className="pins-list">
+                    {routeDetail.pins.map((pin, i) => (
+                      <div
+                        key={pin.id}
+                        className="pin-card"
+                        onClick={() => { closeModal(); navigate(`/map?lat=${pin.latitude}&lng=${pin.longitude}&zoom=17`); }}
+                      >
+                        <div className="pin-card-img">
+                          {pin.image_urls?.[0]
+                            ? <img src={pin.image_urls[0]} alt={pin.title} />
+                            : <span className="pin-card-emoji">{pin.category_emoji || '📍'}</span>
+                          }
+                          <span className="pin-card-num">{i + 1}</span>
                         </div>
-                      ))}
-                    </div>
+                        <div className="pin-card-info">
+                          <span className="pin-cat-emoji">{pin.category_emoji}</span>
+                          <div>
+                            <p className="pin-card-name">{pin.title}</p>
+                            {pin.location_name && <p className="pin-card-loc">{pin.location_name}</p>}
+                          </div>
+                        </div>
+                        <span className="pin-card-arrow">›</span>
+                      </div>
+                    ))}
                   </div>
-                )}
+                ) : null}
 
-                {/* Google Maps button */}
                 <button
-                  className="btn-google-maps-full"
+                  className="btn-gmaps"
                   onClick={() => openInGoogleMaps(routeDetail?.pins || [])}
                   disabled={loadingDetail || !routeDetail?.pins?.length}
                 >
-                  <ExternalLink size={18} />
+                  <ExternalLink size={17} />
                   Abrir en Google Maps
                 </button>
               </div>
@@ -312,106 +399,67 @@ const RoutesPage = () => {
         )}
       </AnimatePresence>
 
-      {/* Create Route Modal */}
+      {/* ── Create Modal ────────────────────────────────────────────────────── */}
       <AnimatePresence>
         {showCreate && (
-          <motion.div
-            className="route-modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowCreate(false)}
-          >
+          <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowCreate(false)}>
             <motion.div
-              className="route-modal create-route-modal"
+              className="route-modal"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 320 }}
               onClick={e => e.stopPropagation()}
             >
-              <button className="modal-close" onClick={() => setShowCreate(false)}><X size={18} /></button>
-              <div className="modal-content">
+              <button className="modal-close-btn" onClick={() => setShowCreate(false)}><X size={16} /></button>
+              <div className="modal-body" style={{ paddingTop: '2rem' }}>
                 <h2>Nueva Ruta</h2>
-                <p className="create-route-hint">Arma una playlist de tus pins favoritos</p>
+                <p className="create-hint">Arma una playlist de tus pins favoritos</p>
 
-                <div className="create-route-title-row">
-                  <input
-                    className="create-route-emoji"
-                    value={newRoute.emoji}
-                    onChange={e => setNewRoute(p => ({ ...p, emoji: e.target.value }))}
-                    maxLength={2}
-                  />
-                  <input
-                    className="create-route-title-input"
-                    placeholder="Nombre de la ruta..."
-                    value={newRoute.title}
-                    onChange={e => setNewRoute(p => ({ ...p, title: e.target.value }))}
-                    maxLength={80}
-                  />
+                <div className="create-title-row">
+                  <input className="create-emoji-input" value={newRoute.emoji} onChange={e => setNewRoute(p => ({ ...p, emoji: e.target.value }))} maxLength={2} />
+                  <input className="create-text-input" placeholder="Nombre de la ruta..." value={newRoute.title} onChange={e => setNewRoute(p => ({ ...p, title: e.target.value }))} maxLength={80} />
                 </div>
 
-                <textarea
-                  className="create-route-desc"
-                  placeholder="Descripción (opcional)..."
-                  value={newRoute.description}
-                  onChange={e => setNewRoute(p => ({ ...p, description: e.target.value }))}
-                  rows={2}
-                />
+                <textarea className="create-textarea" placeholder="Descripción (opcional)..." value={newRoute.description} onChange={e => setNewRoute(p => ({ ...p, description: e.target.value }))} rows={2} />
 
-                <input
-                  className="create-route-desc"
-                  placeholder="Duración estimada, ej. Medio día, 2 horas..."
-                  value={newRoute.estimated_time}
-                  onChange={e => setNewRoute(p => ({ ...p, estimated_time: e.target.value }))}
-                  style={{ marginBottom: '1.25rem' }}
-                />
+                <select className="create-select" value={newRoute.estimated_time} onChange={e => setNewRoute(p => ({ ...p, estimated_time: e.target.value }))}>
+                  <option value="">Duración estimada (opcional)</option>
+                  <option value="1-2 horas">1-2 horas</option>
+                  <option value="Medio día">Medio día</option>
+                  <option value="1 día">1 día</option>
+                  <option value="Fin de semana">Fin de semana</option>
+                </select>
 
-                <h3 className="create-route-pins-title">
-                  Selecciona tus pins
-                  {newRoute.pin_ids.length > 0 && (
-                    <span className="pins-selected-count">{newRoute.pin_ids.length} seleccionados</span>
-                  )}
-                </h3>
+                <div className="create-pins-header">
+                  <h3>Selecciona tus pins</h3>
+                  {newRoute.pin_ids.length > 0 && <span className="pins-badge">{newRoute.pin_ids.length} seleccionados</span>}
+                </div>
 
                 {myPins.length === 0 ? (
-                  <p className="create-route-no-pins">Aún no tienes pins. ¡Crea algunos primero!</p>
+                  <p className="create-empty-pins">Aún no tienes pins. ¡Crea algunos primero!</p>
                 ) : (
-                  <div className="create-route-pins-list">
+                  <div className="create-pins-list">
                     {myPins.map(pin => {
-                      const selected = newRoute.pin_ids.includes(pin.id);
+                      const sel = newRoute.pin_ids.includes(pin.id);
                       const order = newRoute.pin_ids.indexOf(pin.id) + 1;
                       return (
-                        <button
-                          key={pin.id}
-                          className={`create-route-pin-item ${selected ? 'selected' : ''}`}
-                          onClick={() => togglePin(pin.id)}
-                        >
-                          <div className="pin-picker-img">
-                            {pin.image_urls?.[0]
-                              ? <img src={pin.image_urls[0]} alt={pin.title} />
-                              : <span>{pin.category_emoji || '📍'}</span>
-                            }
+                        <button key={pin.id} className={`picker-pin ${sel ? 'selected' : ''}`} onClick={() => togglePin(pin.id)}>
+                          <div className="picker-pin-img">
+                            {pin.image_urls?.[0] ? <img src={pin.image_urls[0]} alt={pin.title} /> : <span>{pin.category_emoji || '📍'}</span>}
                           </div>
-                          <div className="pin-picker-info">
-                            <p className="pin-picker-name">{pin.title}</p>
-                            {pin.location_name && <p className="pin-picker-loc">{pin.location_name}</p>}
+                          <div className="picker-pin-info">
+                            <p className="picker-pin-name">{pin.title}</p>
+                            {pin.location_name && <p className="picker-pin-loc">{pin.location_name}</p>}
                           </div>
-                          {selected
-                            ? <span className="pin-picker-order">{order}</span>
-                            : <span className="pin-picker-add">+</span>
-                          }
+                          {sel ? <span className="picker-num">{order}</span> : <span className="picker-add">+</span>}
                         </button>
                       );
                     })}
                   </div>
                 )}
 
-                <button
-                  className="btn-google-maps-full"
-                  onClick={handleCreateRoute}
-                  disabled={creating || !newRoute.title.trim() || newRoute.pin_ids.length === 0}
-                >
+                <button className="btn-gmaps" onClick={handleCreateRoute} disabled={creating || !newRoute.title.trim() || newRoute.pin_ids.length === 0}>
                   {creating ? 'Creando...' : 'Crear Ruta'}
                 </button>
               </div>
