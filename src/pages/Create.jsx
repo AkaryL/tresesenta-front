@@ -599,15 +599,6 @@ const Create = () => {
               </>
             )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className="btn-create-pin"
-              disabled={loading || !isFormValid}
-            >
-              <MapPin size={18} />
-              {loading ? 'Publicando...' : 'Crear Pin'}
-            </button>
           </div>
         </form>
       </div>
