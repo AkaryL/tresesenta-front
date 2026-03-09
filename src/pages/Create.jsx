@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { X, MapPin, Upload, Image as ImageIcon, Check, Navigation } from 'lucide-react';
+import { X, MapPin, Upload, Image as ImageIcon, Check, Navigation, Search } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import DesktopHeader from '../components/DesktopHeader';
 import { pinsAPI, categoriesAPI, citiesAPI, uploadAPI, authAPI } from '../services/api';
@@ -33,12 +33,12 @@ const createColoredPin = (color) => {
   });
 };
 
-// Recenter map when position changes
-const RecenterMap = ({ lat, lng }) => {
+// Recenter map - focusTrigger forces recenter even if coords didn't change
+const RecenterMap = ({ lat, lng, focusTrigger }) => {
   const map = useMap();
   useEffect(() => {
-    map.setView([lat, lng], map.getZoom());
-  }, [lat, lng, map]);
+    map.setView([lat, lng], 15);
+  }, [lat, lng, focusTrigger, map]);
   return null;
 };
 
@@ -79,6 +79,11 @@ const Create = () => {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [detectedCity, setDetectedCity] = useState('');
   const [successData, setSuccessData] = useState(null);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [locationResults, setLocationResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [focusTrigger, setFocusTrigger] = useState(0);
+  const searchTimeoutRef = useRef(null);
   const passportColorId = localStorage.getItem('passport_color') || 'olive';
   const pinColor = PROFILE_COLORS[passportColorId] || PROFILE_COLORS.olive;
 
@@ -167,6 +172,47 @@ const Create = () => {
     } catch (error) {
       console.error('Error reverse geocoding:', error);
     }
+  };
+
+  const handleLocationSearch = (value) => {
+    setLocationSearch(value);
+    setLocationResults([]);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (!value.trim() || value.length < 3) return;
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        // Build URL - if user has location, bias results nearby (~30km viewbox)
+        let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&limit=6&addressdetails=1&countrycodes=mx`;
+        if (formData.latitude && formData.longitude) {
+          const lat = parseFloat(formData.latitude);
+          const lng = parseFloat(formData.longitude);
+          const delta = 0.3; // ~30km
+          url += `&viewbox=${lng - delta},${lat + delta},${lng + delta},${lat - delta}&bounded=1`;
+        }
+        const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+        const data = await res.json();
+        setLocationResults(data);
+      } catch (e) {
+        console.error('Search error:', e);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400);
+  };
+
+  const handleSelectLocation = (result) => {
+    const lat = parseFloat(result.lat);
+    const lng = parseFloat(result.lon);
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat.toString(),
+      longitude: lng.toString(),
+    }));
+    setLocationSearch(result.display_name.split(',').slice(0, 2).join(','));
+    setLocationResults([]);
+    reverseGeocode(lat, lng);
   };
 
   const handleChange = (e) => {
@@ -436,6 +482,32 @@ const Create = () => {
               )}
 
               <label className="field-label">Ubicación</label>
+
+              {/* Location search */}
+              <div className="location-search-wrapper">
+                <div className="location-search-input-row">
+                  <Search size={16} className="location-search-icon" />
+                  <input
+                    type="text"
+                    className="location-search-input"
+                    placeholder="Buscar calle, colonia, ciudad..."
+                    value={locationSearch}
+                    onChange={e => handleLocationSearch(e.target.value)}
+                  />
+                  {searchLoading && <span className="location-search-spinner" />}
+                </div>
+                {locationResults.length > 0 && (
+                  <ul className="location-search-results">
+                    {locationResults.map(r => (
+                      <li key={r.place_id} onClick={() => handleSelectLocation(r)}>
+                        <MapPin size={13} />
+                        <span>{r.display_name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
               {hasLocation ? (
                 <div className="gps-map-preview">
                   <MapContainer
@@ -448,7 +520,7 @@ const Create = () => {
                     style={{ width: '100%', height: '100%' }}
                   >
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                    <RecenterMap lat={parseFloat(formData.latitude)} lng={parseFloat(formData.longitude)} />
+                    <RecenterMap lat={parseFloat(formData.latitude)} lng={parseFloat(formData.longitude)} focusTrigger={focusTrigger} />
                     <DraggableMarker
                       position={[parseFloat(formData.latitude), parseFloat(formData.longitude)]}
                       onDragEnd={handleMarkerDrag}
@@ -462,7 +534,7 @@ const Create = () => {
                   <button
                     type="button"
                     className="gps-map-retry"
-                    onClick={getGPSLocation}
+                    onClick={() => setFocusTrigger(t => t + 1)}
                   >
                     <Navigation size={12} />
                     Enfocar
