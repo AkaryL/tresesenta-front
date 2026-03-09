@@ -256,15 +256,13 @@ const RoutesPage = () => {
                 transition={{ delay: index * 0.06 }}
                 onClick={() => handleSelectRoute(route)}
               >
-                {/* Cover image carousel */}
+                {/* Cover image carousel — only from pin photos */}
                 <div className="route-card-img">
                   {route.pin_images?.length > 0 ? (
                     <RouteCardCover images={route.pin_images} />
-                  ) : getCoverImage(route) ? (
-                    <img src={getCoverImage(route)} alt={route.title} className="route-carousel-img active" />
                   ) : (
                     <div className="route-img-placeholder">
-                      <span>{route.emoji || '🗺️'}</span>
+                      <span>🗺️</span>
                     </div>
                   )}
 
@@ -292,10 +290,7 @@ const RoutesPage = () => {
 
                 {/* Card body */}
                 <div className="route-card-body">
-                  <h3 className="route-title">
-                    <span className="route-title-emoji">{route.emoji || '🗺️'}</span>
-                    {route.title}
-                  </h3>
+                  <h3 className="route-title">{route.title}</h3>
                   {route.description && <p className="route-desc">{route.description}</p>}
                   <div className="route-meta">
                     <span><MapPin size={12} />{route.total_pins} paradas</span>
@@ -325,14 +320,14 @@ const RoutesPage = () => {
             >
               <button className="modal-close-btn" onClick={closeModal}><X size={16} /></button>
 
-              {/* Cover */}
+              {/* Cover — from first pin photo */}
               <div className="modal-cover">
-                {getCoverImage(selectedRoute) ? (
-                  <img src={getCoverImage(selectedRoute)} alt={selectedRoute.title} />
-                ) : (selectedRoute.pin_images?.length > 0) ? (
+                {selectedRoute.pin_images?.length > 0 ? (
                   <img src={selectedRoute.pin_images[0]} alt={selectedRoute.title} />
+                ) : routeDetail?.pins?.find(p => p.image_urls?.[0]) ? (
+                  <img src={routeDetail.pins.find(p => p.image_urls?.[0]).image_urls[0]} alt={selectedRoute.title} />
                 ) : (
-                  <div className="modal-cover-placeholder"><span>{selectedRoute.emoji || '🗺️'}</span></div>
+                  <div className="modal-cover-placeholder"><span>🗺️</span></div>
                 )}
               </div>
 
@@ -417,7 +412,6 @@ const RoutesPage = () => {
                 <p className="create-hint">Arma una playlist de tus pins favoritos</p>
 
                 <div className="create-title-row">
-                  <input className="create-emoji-input" value={newRoute.emoji} onChange={e => setNewRoute(p => ({ ...p, emoji: e.target.value }))} maxLength={2} />
                   <input className="create-text-input" placeholder="Nombre de la ruta..." value={newRoute.title} onChange={e => setNewRoute(p => ({ ...p, title: e.target.value }))} maxLength={80} />
                 </div>
 

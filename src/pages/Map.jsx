@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Tooltip, CircleMarker, useMap } from 'react-leaflet';
 import {
   MapPin, Heart, MessageCircle, X, Navigation, Globe, Send, Locate, Plus, Minus, List, Map as MapIcon,
@@ -88,17 +89,16 @@ const RecenterMap = ({ pins }) => {
   return null;
 };
 
-// Fly to a specific location (zoom ~14 = 80%)
-const FlyToLocation = ({ position, onDone }) => {
+// Fly to a specific location
+const FlyToLocation = ({ position, zoom, onDone }) => {
   const map = useMap();
   useEffect(() => {
     if (position) {
-      const currentZoom = map.getZoom();
-      const targetZoom = Math.max(currentZoom, 14);
-      map.flyTo(position, targetZoom, { duration: 0.8 });
-      if (onDone) setTimeout(onDone, 900);
+      const targetZoom = zoom || Math.max(map.getZoom(), 14);
+      map.flyTo(position, targetZoom, { duration: 0.9 });
+      if (onDone) setTimeout(onDone, 1000);
     }
-  }, [position, map, onDone]);
+  }, [position, map, onDone, zoom]);
   return null;
 };
 
@@ -134,6 +134,7 @@ const Map = () => {
   const passportColorId = localStorage.getItem('passport_color') || 'camel';
   const accentColor = PROFILE_COLORS[passportColorId] || PROFILE_COLORS.camel;
   const [pins, setPins] = useState([]);
+  const location = useLocation();
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -160,6 +161,17 @@ const Map = () => {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  // Read URL params (lat, lng, zoom) and fly to that position once pins load
+  useEffect(() => {
+    if (loading) return;
+    const params = new URLSearchParams(location.search);
+    const lat = parseFloat(params.get('lat'));
+    const lng = parseFloat(params.get('lng'));
+    if (!isNaN(lat) && !isNaN(lng)) {
+      setFlyTarget([lat, lng]);
+    }
+  }, [loading, location.search]);
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) return;
@@ -571,7 +583,7 @@ const Map = () => {
             maxZoom={19}
           />
           <RecenterMap pins={validPins} />
-          {flyTarget && <FlyToLocation position={flyTarget} onDone={() => setFlyTarget(null)} />}
+          {flyTarget && <FlyToLocation position={flyTarget} zoom={parseInt(new URLSearchParams(location.search).get('zoom')) || null} onDone={() => setFlyTarget(null)} />}
           <MapControls onLocate={handleLocateMe} />
           {userLocation && (
             <CircleMarker
