@@ -90,6 +90,8 @@ export const pointsAPI = {
 export const routesAPI = {
   getAll: (params) => api.get('/routes', { params }),
   getById: (id) => api.get(`/routes/${id}`),
+  create: (data) => api.post('/routes', data),
+  getMyPins: () => api.get('/routes/my/pins'),
 };
 
 // Badges
