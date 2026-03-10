@@ -15,19 +15,7 @@
   overflow: hidden;
 }
 
-/* MAP TILES - CartoDB Voyager with warm road tint
-   Uses mix-blend-mode multiply overlay to warm up white/gray roads
-   toward #B59E7D without distorting water blues or park greens */
-.map-panel .leaflet-tile-pane::after,
-.map-container-mobile .leaflet-tile-pane::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(181, 158, 125, 0.1);
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  z-index: 1;
-}
+/* Google Maps container styling */
 
 /* ========================================
    DESKTOP SPLIT LAYOUT
@@ -436,10 +424,12 @@
   background: var(--map-bg, #F9F9F9);
 }
 
-.map-panel .leaflet-container {
-  height: 100% !important;
-  width: 100% !important;
+/* Google Maps wrapper must fill the panel */
+.gmap-fill {
+  position: absolute;
+  inset: 0;
 }
+
 
 /* Floating filters over the map (desktop) */
 .map-floating-filters {
@@ -663,10 +653,11 @@
   overflow: hidden;
 }
 
-.map-container-mobile .leaflet-container {
-  height: 100% !important;
-  width: 100% !important;
+.map-container-mobile .gmap-fill {
+  position: absolute;
+  inset: 0;
 }
+
 
 /* Empty State in Map */
 .empty-state-map {
@@ -691,32 +682,22 @@
 }
 
 /* ========================================
-   CUSTOM PIN MARKERS
+   PIN TOOLTIP (Google Maps InfoWindow)
    ======================================== */
-.custom-pin-marker {
-  transition: transform 0.2s ease;
-}
-
-.custom-pin-marker:hover {
-  transform: scale(1.15);
-}
-
-.leaflet-marker-icon.custom-pin-marker {
-  background: transparent !important;
-  border: none !important;
-}
-
-/* Pin Tooltip */
-.pin-tooltip {
+.gm-style-iw {
   padding: 0 !important;
-  border: none !important;
-  background: transparent !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
   border-radius: 12px !important;
+  overflow: hidden !important;
 }
 
-.pin-tooltip::before {
-  border-top-color: white !important;
+.gm-style-iw-d {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+/* Hide the close button on hover tooltips */
+.gm-style-iw button[aria-label="Close"] {
+  display: none !important;
 }
 
 .pin-tooltip-content {
@@ -1360,14 +1341,8 @@
   transform: translateY(-2px);
 }
 
-.leaflet-container {
-  border-radius: 0;
-}
-
-/* Hide Leaflet default zoom control */
-.leaflet-control-zoom {
-  display: none !important;
-}
+/* Hide Google Maps default UI elements */
+.gm-style iframe + div { border: none !important; }
 
 /* ========================================
    WELCOME POPUP

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Tooltip, CircleMarker, useMap } from 'react-leaflet';
+import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF, CircleF } from '@react-google-maps/api';
 import {
   MapPin, Heart, MessageCircle, X, Navigation, Globe, Send, Locate, Plus, Minus, List, Map as MapIcon,
   ChevronLeft, ChevronRight
@@ -10,8 +10,6 @@ import DesktopHeader from '../components/DesktopHeader';
 import { useAuth } from '../context/AuthContext';
 import { pinsAPI, categoriesAPI } from '../services/api';
 import { connectSocket, disconnectSocket } from '../services/socket';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import './Map.css';
 import './Auth.css';
 
@@ -34,7 +32,6 @@ const CATEGORY_PIN_IMAGES = {
   'default': pinFavoritos
 };
 
-// IDs must match `c.name` column in DB (backend filters by c.name)
 const FIXED_CATEGORIES = [
   { id: 'parques', name: 'Parques', icon: pinParques },
   { id: 'cafeteria', name: 'Cafetería', icon: pinCafeteria },
@@ -44,15 +41,28 @@ const FIXED_CATEGORIES = [
   { id: 'favoritos', name: 'Favoritos', icon: pinFavoritos },
 ];
 
-const createCustomIcon = (categoryName) => {
-  const pinImage = CATEGORY_PIN_IMAGES[categoryName] || CATEGORY_PIN_IMAGES.default;
-  return L.icon({
-    iconUrl: pinImage,
-    iconSize: [40, 50],
-    iconAnchor: [20, 50],
-    popupAnchor: [0, -50],
-    className: 'custom-pin-marker'
-  });
+// Google Maps warm/clean style (similar to CartoDB Voyager)
+const MAP_STYLES = [
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9d1d9' }] },
+  { featureType: 'landscape', elementType: 'geometry.fill', stylers: [{ color: '#f5f0ea' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e8e0d4' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f0e8db' }] },
+  { featureType: 'poi.park', elementType: 'geometry.fill', stylers: [{ color: '#d4e5c9' }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#93867a' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'administrative', elementType: 'labels.text.fill', stylers: [{ color: '#93867a' }] },
+  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#93867a' }] },
+  { featureType: 'poi.business', stylers: [{ visibility: 'off' }] },
+];
+
+const GOOGLE_LIBRARIES = ['places'];
+
+const MAP_OPTIONS = {
+  disableDefaultUI: true,
+  clickableIcons: false,
+  styles: MAP_STYLES,
+  gestureHandling: 'greedy',
 };
 
 // Haversine distance in km
@@ -70,54 +80,6 @@ const formatDistance = (km) => {
   if (km < 1) return `${Math.round(km * 1000)} m`;
   if (km < 10) return `${km.toFixed(1)} km`;
   return `${Math.round(km)} km`;
-};
-
-// Fit map to pins bounds (only on first load, not on every filter change)
-const RecenterMap = ({ pins }) => {
-  const map = useMap();
-  const hasCentered = useRef(false);
-  useEffect(() => {
-    if (!hasCentered.current && pins && pins.length > 0) {
-      const validPins = pins.filter(pin => pin.latitude && pin.longitude);
-      if (validPins.length > 0) {
-        const bounds = validPins.map(pin => [pin.latitude, pin.longitude]);
-        map.fitBounds(bounds, { padding: [50, 50] });
-        hasCentered.current = true;
-      }
-    }
-  }, [pins, map]);
-  return null;
-};
-
-// Fly to a specific location
-const FlyToLocation = ({ position, zoom, onDone }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (position) {
-      const targetZoom = zoom || Math.max(map.getZoom(), 14);
-      map.flyTo(position, targetZoom, { duration: 0.9 });
-      if (onDone) setTimeout(onDone, 1000);
-    }
-  }, [position, map, onDone, zoom]);
-  return null;
-};
-
-// Custom map controls (zoom + locate)
-const MapControls = ({ onLocate }) => {
-  const map = useMap();
-  return (
-    <div className="map-controls">
-      <button className="map-ctrl-btn" onClick={() => map.zoomIn()} title="Acercar">
-        <Plus size={18} strokeWidth={2.5} />
-      </button>
-      <button className="map-ctrl-btn" onClick={() => map.zoomOut()} title="Alejar">
-        <Minus size={18} strokeWidth={2.5} />
-      </button>
-      <button className="map-ctrl-btn map-ctrl-locate" onClick={onLocate} title="Mi ubicacion">
-        <Locate size={18} strokeWidth={2.5} />
-      </button>
-    </div>
-  );
 };
 
 const PROFILE_COLORS = {
@@ -139,7 +101,7 @@ const Map = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('map'); // mobile only
+  const [viewMode, setViewMode] = useState('map');
   const [selectedPin, setSelectedPin] = useState(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [comments, setComments] = useState([]);
@@ -147,29 +109,38 @@ const Map = () => {
   const [sendingComment, setSendingComment] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [userLocation, setUserLocation] = useState(null);
-  const [flyTarget, setFlyTarget] = useState(null);
   const [commentError, setCommentError] = useState('');
   const [hoveredPinId, setHoveredPinId] = useState(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   const [lightboxUrl, setLightboxUrl] = useState(null);
+  const [tooltipPin, setTooltipPin] = useState(null);
   const sidebarRef = useRef(null);
   const cardRefs = useRef({});
+  const mapRef = useRef(null);
+  const hasCentered = useRef(false);
 
-  // Track viewport for conditional rendering (only one MapContainer at a time)
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: GOOGLE_LIBRARIES,
+  });
+
   useEffect(() => {
     const onResize = () => setIsDesktop(window.innerWidth >= 1024);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Read URL params (lat, lng, zoom) and fly to that position once pins load
+  // Read URL params and fly to position once loaded
   useEffect(() => {
-    if (loading) return;
+    if (loading || !mapRef.current) return;
     const params = new URLSearchParams(location.search);
     const lat = parseFloat(params.get('lat'));
     const lng = parseFloat(params.get('lng'));
+    const zoom = parseInt(params.get('zoom'));
     if (!isNaN(lat) && !isNaN(lng)) {
-      setFlyTarget([lat, lng]);
+      mapRef.current.panTo({ lat, lng });
+      if (!isNaN(zoom)) mapRef.current.setZoom(zoom);
+      else mapRef.current.setZoom(Math.max(mapRef.current.getZoom(), 14));
     }
   }, [loading, location.search]);
 
@@ -183,22 +154,29 @@ const Map = () => {
   }, []);
 
   const handleLocateMe = useCallback(() => {
+    if (!mapRef.current) return;
     if (userLocation) {
-      setFlyTarget([userLocation.lat, userLocation.lng]);
+      mapRef.current.panTo(userLocation);
+      mapRef.current.setZoom(15);
     } else {
       requestLocation();
     }
   }, [userLocation, requestLocation]);
 
   const handleFocusOnMap = useCallback((pin) => {
-    setFlyTarget([pin.latitude, pin.longitude]);
+    if (mapRef.current) {
+      mapRef.current.panTo({ lat: pin.latitude, lng: pin.longitude });
+      mapRef.current.setZoom(Math.max(mapRef.current.getZoom(), 15));
+    }
     setSelectedPin(pin);
     setViewMode('map');
   }, []);
 
-  // Click a sidebar card -> fly to pin on map
   const handleCardClick = useCallback((pin) => {
-    setFlyTarget([pin.latitude, pin.longitude]);
+    if (mapRef.current) {
+      mapRef.current.panTo({ lat: pin.latitude, lng: pin.longitude });
+      mapRef.current.setZoom(Math.max(mapRef.current.getZoom(), 15));
+    }
     setHoveredPinId(pin.id);
     setSelectedPin(pin);
   }, []);
@@ -231,6 +209,24 @@ const Map = () => {
     }
   };
 
+  // Fit bounds once pins load
+  const onMapLoad = useCallback((map) => {
+    mapRef.current = map;
+  }, []);
+
+  useEffect(() => {
+    if (!mapRef.current || hasCentered.current || loading) return;
+    const validPins = pins
+    .map(pin => ({ ...pin, latitude: parseFloat(pin.latitude), longitude: parseFloat(pin.longitude) }))
+    .filter(pin => !isNaN(pin.latitude) && !isNaN(pin.longitude));
+    if (validPins.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds();
+      validPins.forEach(pin => bounds.extend({ lat: pin.latitude, lng: pin.longitude }));
+      mapRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
+      hasCentered.current = true;
+    }
+  }, [pins, loading]);
+
   const handleCategoryChange = async (categoryId) => {
     setSelectedCategory(categoryId);
     setLoading(true);
@@ -238,8 +234,6 @@ const Map = () => {
     try {
       let params = {};
       if (categoryId !== 'all') {
-        // Backend filters by c.name (DB column), so send the id directly
-        // FIXED_CATEGORIES ids match the DB name column: parques, cafeteria, etc.
         params = { category: categoryId };
       }
       const response = await pinsAPI.getAll(params);
@@ -312,7 +306,7 @@ const Map = () => {
     }
   }, [selectedPin]);
 
-  // WebSocket: connect on mount, join/leave pin rooms
+  // WebSocket
   const socketRef = useRef(null);
 
   useEffect(() => {
@@ -320,7 +314,6 @@ const Map = () => {
     return () => disconnectSocket();
   }, []);
 
-  // WebSocket: eventos globales del mapa (admin actions)
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return;
@@ -340,7 +333,7 @@ const Map = () => {
           return [newPin, ...prev];
         });
       } catch {
-        // pin puede no ser accesible aún, ignorar
+        // pin puede no ser accesible aún
       }
     };
 
@@ -371,7 +364,6 @@ const Map = () => {
 
       const handlePinLiked = (data) => {
         if (data.pin_id === selectedPin.id) {
-          // Update likes_count on the selected pin from other users
           setPins(prev => prev.map(p =>
             p.id === data.pin_id
               ? { ...p, likes_count: data.liked ? (p.likes_count || 0) + 1 : Math.max(0, (p.likes_count || 0) - 1) }
@@ -441,10 +433,10 @@ const Map = () => {
   };
 
   const getMapCenter = () => {
-    if (userLocation) return [userLocation.lat, userLocation.lng];
+    if (userLocation) return userLocation;
     const vp = pins.filter(pin => pin.latitude && pin.longitude);
-    if (vp.length > 0) return [vp[0].latitude, vp[0].longitude];
-    return [19.4326, -99.1332];
+    if (vp.length > 0) return { lat: vp[0].latitude, lng: vp[0].longitude };
+    return { lat: 19.4326, lng: -99.1332 };
   };
 
   const handleShare = (pin) => {
@@ -454,7 +446,9 @@ const Map = () => {
     }
   };
 
-  const validPins = pins.filter(pin => pin.latitude && pin.longitude);
+  const validPins = pins
+    .map(pin => ({ ...pin, latitude: parseFloat(pin.latitude), longitude: parseFloat(pin.longitude) }))
+    .filter(pin => !isNaN(pin.latitude) && !isNaN(pin.longitude));
 
   const sortedPins = userLocation
     ? [...validPins].sort((a, b) =>
@@ -485,7 +479,6 @@ const Map = () => {
     </>
   );
 
-  // Sidebar card for desktop
   const renderSidebarCard = (pin) => {
     const dist = userLocation
       ? getDistance(userLocation.lat, userLocation.lng, pin.latitude, pin.longitude)
@@ -537,7 +530,6 @@ const Map = () => {
     );
   };
 
-  // Mobile grid card
   const renderGridCard = (pin) => {
     const dist = userLocation
       ? getDistance(userLocation.lat, userLocation.lng, pin.latitude, pin.longitude)
@@ -594,82 +586,99 @@ const Map = () => {
     );
   };
 
-  const renderMapContent = () => (
-    <>
-      {validPins.length === 0 && !loading ? (
+  const renderGoogleMap = () => {
+    if (!isLoaded) return (
+      <div className="loading-state">
+        <div className="spinner-map"></div>
+        <p>Cargando mapa...</p>
+      </div>
+    );
+
+    if (validPins.length === 0 && !loading) {
+      return (
         <div className="empty-state-map">
           <MapPin size={64} strokeWidth={1.5} />
           <h3>No hay pins para mostrar</h3>
           <p>Agrega algunos pins o prueba con otra categoria</p>
         </div>
-      ) : (
-        <MapContainer
-          center={getMapCenter()}
-          zoom={12}
-          style={{ height: '100%', width: '100%' }}
-          scrollWheelZoom={true}
-          zoomControl={false}
-          attributionControl={false}
-        >
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            maxZoom={19}
+      );
+    }
+
+    return (
+      <div className="gmap-fill">
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '100%' }}
+        center={getMapCenter()}
+        zoom={12}
+        options={MAP_OPTIONS}
+        onLoad={onMapLoad}
+        onClick={() => setTooltipPin(null)}
+      >
+        {/* User location */}
+        {userLocation && (
+          <CircleF
+            center={userLocation}
+            radius={30}
+            options={{
+              fillColor: '#4A90D9',
+              fillOpacity: 0.9,
+              strokeColor: '#fff',
+              strokeWeight: 3,
+              clickable: false,
+            }}
           />
-          <RecenterMap pins={validPins} />
-          {flyTarget && <FlyToLocation position={flyTarget} zoom={parseInt(new URLSearchParams(location.search).get('zoom')) || null} onDone={() => setFlyTarget(null)} />}
-          <MapControls onLocate={handleLocateMe} />
-          {userLocation && (
-            <CircleMarker
-              center={[userLocation.lat, userLocation.lng]}
-              radius={8}
-              pathOptions={{
-                fillColor: '#4A90D9',
-                fillOpacity: 0.9,
-                color: '#fff',
-                weight: 3,
+        )}
+
+        {/* Pin markers */}
+        {validPins.map((pin) => {
+          const categoryName = pin.category_name_es || pin.category_name || 'default';
+          const pinImage = CATEGORY_PIN_IMAGES[categoryName] || CATEGORY_PIN_IMAGES.default;
+
+          return (
+            <MarkerF
+              key={pin.id}
+              position={{ lat: pin.latitude, lng: pin.longitude }}
+              icon={{
+                url: pinImage,
+                scaledSize: new window.google.maps.Size(40, 50),
+                anchor: new window.google.maps.Point(20, 50),
               }}
-            >
-              <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Tu ubicacion</span>
-              </Tooltip>
-            </CircleMarker>
-          )}
-          {validPins.map((pin) => {
-            const categoryName = pin.category_name_es || pin.category_name || 'default';
-            return (
-              <Marker
-                key={pin.id}
-                position={[pin.latitude, pin.longitude]}
-                icon={createCustomIcon(categoryName)}
-                eventHandlers={{ click: () => setSelectedPin(pin) }}
-              >
-                <Tooltip direction="top" offset={[0, -50]} opacity={1} className="pin-tooltip">
-                  <div className="pin-tooltip-content">
-                    {pin.image_urls && pin.image_urls.length > 0 && (
-                      <img src={pin.image_urls[0]} alt={pin.title} />
-                    )}
-                    <div className="pin-tooltip-info">
-                      <strong>{pin.title}</strong>
-                      {pin.city_name && <span>{pin.city_name}</span>}
-                    </div>
-                  </div>
-                </Tooltip>
-              </Marker>
-            );
-          })}
-        </MapContainer>
-      )}
-    </>
-  );
+              onClick={() => setSelectedPin(pin)}
+              onMouseOver={() => setTooltipPin(pin)}
+              onMouseOut={() => setTooltipPin(null)}
+            />
+          );
+        })}
+
+        {/* Tooltip InfoWindow */}
+        {tooltipPin && (
+          <InfoWindowF
+            position={{ lat: tooltipPin.latitude, lng: tooltipPin.longitude }}
+            options={{ pixelOffset: new window.google.maps.Size(0, -50), disableAutoPan: true }}
+            onCloseClick={() => setTooltipPin(null)}
+          >
+            <div className="pin-tooltip-content">
+              {tooltipPin.image_urls && tooltipPin.image_urls.length > 0 && (
+                <img src={tooltipPin.image_urls[0]} alt={tooltipPin.title} />
+              )}
+              <div className="pin-tooltip-info">
+                <strong>{tooltipPin.title}</strong>
+                {tooltipPin.city_name && <span>{tooltipPin.city_name}</span>}
+              </div>
+            </div>
+          </InfoWindowF>
+        )}
+      </GoogleMap>
+      </div>
+    );
+  };
 
   return (
     <div className="map-page" style={{ '--accent': accentColor }}>
       <DesktopHeader />
 
       {isDesktop ? (
-        /* ===== DESKTOP LAYOUT: Split View ===== */
         <div className="split-layout">
-          {/* Left Sidebar */}
           <aside className="sidebar" ref={sidebarRef}>
             <div className="sidebar-header">
               <span className="sidebar-label">MAPA 360</span>
@@ -700,12 +709,24 @@ const Map = () => {
             </div>
           </aside>
 
-          {/* Right Map */}
           <div className="map-panel">
             <div className="map-floating-filters">{renderFilters()}</div>
-            {renderMapContent()}
 
-            {/* Floating detail card over the map */}
+            {/* Custom controls */}
+            <div className="map-controls">
+              <button className="map-ctrl-btn" onClick={() => mapRef.current?.setZoom((mapRef.current?.getZoom() || 12) + 1)} title="Acercar">
+                <Plus size={18} strokeWidth={2.5} />
+              </button>
+              <button className="map-ctrl-btn" onClick={() => mapRef.current?.setZoom((mapRef.current?.getZoom() || 12) - 1)} title="Alejar">
+                <Minus size={18} strokeWidth={2.5} />
+              </button>
+              <button className="map-ctrl-btn map-ctrl-locate" onClick={handleLocateMe} title="Mi ubicacion">
+                <Locate size={18} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {renderGoogleMap()}
+
             {selectedPin && (
               <div className="floating-detail">
                 <div className="floating-detail-inner">
@@ -849,9 +870,7 @@ const Map = () => {
           </div>
         </div>
       ) : (
-        /* ===== MOBILE LAYOUT ===== */
         <div className="mobile-layout">
-          {/* Mobile Header */}
           <div className="mobile-header">
             <div>
               <h1>Descubre</h1>
@@ -875,7 +894,6 @@ const Map = () => {
             </div>
           </div>
 
-          {/* Mobile Content */}
           {loading ? (
             <div className="loading-state">
               <div className="spinner-map"></div>
@@ -889,7 +907,18 @@ const Map = () => {
           ) : viewMode === 'map' ? (
             <div className="map-container-mobile">
               <div className="categories-filter floating">{renderFilters()}</div>
-              {renderMapContent()}
+              <div className="map-controls">
+                <button className="map-ctrl-btn" onClick={() => mapRef.current?.setZoom((mapRef.current?.getZoom() || 12) + 1)} title="Acercar">
+                  <Plus size={18} strokeWidth={2.5} />
+                </button>
+                <button className="map-ctrl-btn" onClick={() => mapRef.current?.setZoom((mapRef.current?.getZoom() || 12) - 1)} title="Alejar">
+                  <Minus size={18} strokeWidth={2.5} />
+                </button>
+                <button className="map-ctrl-btn map-ctrl-locate" onClick={handleLocateMe} title="Mi ubicacion">
+                  <Locate size={18} strokeWidth={2.5} />
+                </button>
+              </div>
+              {renderGoogleMap()}
             </div>
           ) : (
             <>
@@ -912,7 +941,7 @@ const Map = () => {
         </div>
       )}
 
-      {/* ===== MOBILE PIN DETAIL OVERLAY (only on mobile) ===== */}
+      {/* Mobile Pin Detail Overlay */}
       {!isDesktop && selectedPin && (
         <div className="overlay-backdrop" onClick={() => setSelectedPin(null)}>
           <div className="overlay-card" onClick={(e) => e.stopPropagation()}>
@@ -1079,7 +1108,7 @@ const Map = () => {
         </div>
       )}
 
-      {/* Lightbox - click image to see bigger */}
+      {/* Lightbox */}
       {lightboxUrl && (
         <div className="lightbox-backdrop" onClick={() => setLightboxUrl(null)}>
           <img src={lightboxUrl} alt="Foto ampliada" className="lightbox-img" />

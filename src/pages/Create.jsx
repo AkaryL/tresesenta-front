@@ -1,13 +1,11 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { GoogleMap, useJsApiLoader, MarkerF } from '@react-google-maps/api';
 import { X, MapPin, Upload, Image as ImageIcon, Check, Navigation, Search } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import DesktopHeader from '../components/DesktopHeader';
 import { pinsAPI, categoriesAPI, citiesAPI, uploadAPI, authAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import 'leaflet/dist/leaflet.css';
 import './Create.css';
 import './Auth.css';
 
@@ -20,52 +18,16 @@ const PROFILE_COLORS = {
   olive: '#343316',
 };
 
-const createColoredPin = (color) => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
-    <path d="M16 0C7.16 0 0 7.16 0 16c0 12 16 26 16 26s16-14 16-26C32 7.16 24.84 0 16 0z" fill="${color}" stroke="#fff" stroke-width="2"/>
-    <circle cx="16" cy="16" r="6" fill="#fff" opacity="0.9"/>
-  </svg>`;
-  return L.divIcon({
-    html: svg,
-    className: 'custom-create-pin',
-    iconSize: [32, 42],
-    iconAnchor: [16, 42],
-  });
-};
+const GOOGLE_LIBRARIES = ['places'];
 
-// Recenter map - focusTrigger forces recenter even if coords didn't change
-const RecenterMap = ({ lat, lng, focusTrigger }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView([lat, lng], 15);
-  }, [lat, lng, focusTrigger, map]);
-  return null;
-};
-
-// Draggable marker component with custom color
-const DraggableMarker = ({ position, onDragEnd, color }) => {
-  const markerRef = useRef(null);
-  const icon = useMemo(() => createColoredPin(color), [color]);
-  const eventHandlers = useMemo(() => ({
-    dragend() {
-      const marker = markerRef.current;
-      if (marker) {
-        const { lat, lng } = marker.getLatLng();
-        onDragEnd(lat, lng);
-      }
-    },
-  }), [onDragEnd]);
-
-  return (
-    <Marker
-      draggable
-      eventHandlers={eventHandlers}
-      position={position}
-      ref={markerRef}
-      icon={icon}
-    />
-  );
-};
+const MAP_STYLES = [
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9d1d9' }] },
+  { featureType: 'landscape', elementType: 'geometry.fill', stylers: [{ color: '#f5f0ea' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e8e0d4' }] },
+  { featureType: 'poi.business', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+];
 
 const Create = () => {
   const navigate = useNavigate();
@@ -84,8 +46,17 @@ const Create = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [focusTrigger, setFocusTrigger] = useState(0);
   const searchTimeoutRef = useRef(null);
+  const mapRef = useRef(null);
+  const autocompleteServiceRef = useRef(null);
+  const placesServiceRef = useRef(null);
+  const geocoderRef = useRef(null);
   const passportColorId = localStorage.getItem('passport_color') || 'olive';
   const pinColor = PROFILE_COLORS[passportColorId] || PROFILE_COLORS.olive;
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: GOOGLE_LIBRARIES,
+  });
 
   const [formData, setFormData] = useState({
     title: '',
@@ -102,16 +73,22 @@ const Create = () => {
     loadCategories();
     loadCities();
     loadMyShoes();
-    // Auto-detect location on mount
     getGPSLocation();
   }, []);
 
-  // Cleanup blob URLs on unmount
   useEffect(() => {
     return () => {
       imagePreviews.forEach(url => URL.revokeObjectURL(url));
     };
   }, [imagePreviews]);
+
+  // Initialize Google services once loaded
+  useEffect(() => {
+    if (isLoaded && window.google) {
+      autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
+      geocoderRef.current = new window.google.maps.Geocoder();
+    }
+  }, [isLoaded]);
 
   const loadCategories = async () => {
     try {
@@ -147,26 +124,39 @@ const Create = () => {
     }
   };
 
-  // Reverse geocode to find city
+  // Reverse geocode using Google Geocoding API
   const reverseGeocode = async (lat, lng) => {
+    if (!geocoderRef.current) return;
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`,
-        { headers: { 'Accept-Language': 'es' } }
-      );
-      const data = await res.json();
-      const addr = data.address || {};
-      const cityName = addr.city || addr.town || addr.municipality || addr.state || '';
-      setDetectedCity(cityName);
+      const response = await geocoderRef.current.geocode({
+        location: { lat, lng },
+      });
+      if (response.results && response.results.length > 0) {
+        // Find city from address components
+        let cityName = '';
+        for (const result of response.results) {
+          for (const component of result.address_components) {
+            if (component.types.includes('locality')) {
+              cityName = component.long_name;
+              break;
+            }
+            if (!cityName && component.types.includes('administrative_area_level_1')) {
+              cityName = component.long_name;
+            }
+          }
+          if (cityName) break;
+        }
+        setDetectedCity(cityName);
 
-      // Match to existing cities
-      if (cityName && cities.length > 0) {
-        const match = cities.find(c =>
-          c.name.toLowerCase().includes(cityName.toLowerCase()) ||
-          cityName.toLowerCase().includes(c.name.toLowerCase())
-        );
-        if (match) {
-          setFormData(prev => ({ ...prev, city_id: match.id.toString() }));
+        // Match to existing cities
+        if (cityName && cities.length > 0) {
+          const match = cities.find(c =>
+            c.name.toLowerCase().includes(cityName.toLowerCase()) ||
+            cityName.toLowerCase().includes(c.name.toLowerCase())
+          );
+          if (match) {
+            setFormData(prev => ({ ...prev, city_id: match.id.toString() }));
+          }
         }
       }
     } catch (error) {
@@ -174,45 +164,73 @@ const Create = () => {
     }
   };
 
+  // Location search using Google Places Autocomplete
   const handleLocationSearch = (value) => {
     setLocationSearch(value);
     setLocationResults([]);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    if (!value.trim() || value.length < 3) return;
+    if (!value.trim() || value.length < 3 || !autocompleteServiceRef.current) return;
 
     searchTimeoutRef.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
-        // Build URL - if user has location, bias results nearby (~30km viewbox)
-        let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&limit=6&addressdetails=1&countrycodes=mx`;
+        const request = {
+          input: value,
+          componentRestrictions: { country: 'mx' },
+        };
+
+        // Bias towards user's current location if available
         if (formData.latitude && formData.longitude) {
-          const lat = parseFloat(formData.latitude);
-          const lng = parseFloat(formData.longitude);
-          const delta = 0.3; // ~30km
-          url += `&viewbox=${lng - delta},${lat + delta},${lng + delta},${lat - delta}&bounded=1`;
+          request.location = new window.google.maps.LatLng(
+            parseFloat(formData.latitude),
+            parseFloat(formData.longitude)
+          );
+          request.radius = 30000; // 30km
         }
-        const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
-        const data = await res.json();
-        setLocationResults(data);
+
+        autocompleteServiceRef.current.getPlacePredictions(request, (predictions, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+            setLocationResults(predictions.map(p => ({
+              place_id: p.place_id,
+              display_name: p.description,
+              structured: p.structured_formatting,
+            })));
+          } else {
+            setLocationResults([]);
+          }
+          setSearchLoading(false);
+        });
       } catch (e) {
         console.error('Search error:', e);
-      } finally {
         setSearchLoading(false);
       }
     }, 400);
   };
 
   const handleSelectLocation = (result) => {
-    const lat = parseFloat(result.lat);
-    const lng = parseFloat(result.lon);
-    setFormData(prev => ({
-      ...prev,
-      latitude: lat.toString(),
-      longitude: lng.toString(),
-    }));
-    setLocationSearch(result.display_name.split(',').slice(0, 2).join(','));
-    setLocationResults([]);
-    reverseGeocode(lat, lng);
+    if (!geocoderRef.current) return;
+
+    geocoderRef.current.geocode({ placeId: result.place_id }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        const loc = results[0].geometry.location;
+        const lat = loc.lat();
+        const lng = loc.lng();
+        setFormData(prev => ({
+          ...prev,
+          latitude: lat.toString(),
+          longitude: lng.toString(),
+        }));
+        setLocationSearch(result.structured?.main_text || result.display_name.split(',').slice(0, 2).join(','));
+        setLocationResults([]);
+        reverseGeocode(lat, lng);
+
+        // Pan map to new location
+        if (mapRef.current) {
+          mapRef.current.panTo({ lat, lng });
+          mapRef.current.setZoom(15);
+        }
+      }
+    });
   };
 
   const handleChange = (e) => {
@@ -271,21 +289,39 @@ const Create = () => {
     }
   };
 
-  const handleMarkerDrag = (lat, lng) => {
+  const handleMarkerDrag = useCallback((e) => {
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
     setFormData(prev => ({
       ...prev,
       latitude: lat.toString(),
       longitude: lng.toString(),
     }));
     reverseGeocode(lat, lng);
-  };
+  }, [cities]);
+
+  const handleMapLoad = useCallback((map) => {
+    mapRef.current = map;
+    // Also initialize PlacesService (needs a map or div element)
+    placesServiceRef.current = new window.google.maps.places.PlacesService(map);
+  }, []);
+
+  // Recenter when focusTrigger changes
+  useEffect(() => {
+    if (mapRef.current && formData.latitude && formData.longitude) {
+      mapRef.current.panTo({
+        lat: parseFloat(formData.latitude),
+        lng: parseFloat(formData.longitude),
+      });
+      mapRef.current.setZoom(15);
+    }
+  }, [focusTrigger]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Upload pin images
       let imageUrls = [];
       if (images.length > 0) {
         const formDataImages = new FormData();
@@ -303,7 +339,6 @@ const Create = () => {
         }
       }
 
-      // Create pin - clean up empty values
       const pinData = {
         title: formData.title,
         description: formData.description,
@@ -339,12 +374,13 @@ const Create = () => {
   const titleLength = formData.title.length;
   const descLength = formData.description.length;
 
+  // SVG pin icon for Google Maps marker
+  const pinSvgUrl = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42"><path d="M16 0C7.16 0 0 7.16 0 16c0 12 16 26 16 26s16-14 16-26C32 7.16 24.84 0 16 0z" fill="${pinColor}" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="#fff" opacity="0.9"/></svg>`)}`;
+
   return (
     <div className="create-page">
-      {/* Desktop Header */}
       <DesktopHeader />
 
-      {/* Mobile Header */}
       <div className="create-header-minimal">
         <button className="btn-back" onClick={() => navigate('/map')}>
           <X size={24} />
@@ -483,7 +519,7 @@ const Create = () => {
 
               <label className="field-label">Ubicación</label>
 
-              {/* Location search */}
+              {/* Location search with Google Places */}
               <div className="location-search-wrapper">
                 <div className="location-search-input-row">
                   <Search size={16} className="location-search-icon" />
@@ -508,25 +544,31 @@ const Create = () => {
                 )}
               </div>
 
-              {hasLocation ? (
+              {hasLocation && isLoaded ? (
                 <div className="gps-map-preview">
-                  <MapContainer
-                    center={[parseFloat(formData.latitude), parseFloat(formData.longitude)]}
+                  <GoogleMap
+                    mapContainerStyle={{ width: '100%', height: '100%' }}
+                    center={{ lat: parseFloat(formData.latitude), lng: parseFloat(formData.longitude) }}
                     zoom={15}
-                    scrollWheelZoom={false}
-                    zoomControl={false}
-                    attributionControl={false}
-                    doubleClickZoom={false}
-                    style={{ width: '100%', height: '100%' }}
+                    options={{
+                      disableDefaultUI: true,
+                      clickableIcons: false,
+                      styles: MAP_STYLES,
+                      gestureHandling: 'cooperative',
+                    }}
+                    onLoad={handleMapLoad}
                   >
-                    <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                    <RecenterMap lat={parseFloat(formData.latitude)} lng={parseFloat(formData.longitude)} focusTrigger={focusTrigger} />
-                    <DraggableMarker
-                      position={[parseFloat(formData.latitude), parseFloat(formData.longitude)]}
+                    <MarkerF
+                      position={{ lat: parseFloat(formData.latitude), lng: parseFloat(formData.longitude) }}
+                      draggable
                       onDragEnd={handleMarkerDrag}
-                      color={pinColor}
+                      icon={{
+                        url: pinSvgUrl,
+                        scaledSize: new window.google.maps.Size(32, 42),
+                        anchor: new window.google.maps.Point(16, 42),
+                      }}
                     />
-                  </MapContainer>
+                  </GoogleMap>
                   <div className="gps-map-badge">
                     <Check size={14} />
                     <span>Arrastra el pin para ajustar</span>
@@ -539,6 +581,10 @@ const Create = () => {
                     <Navigation size={12} />
                     Enfocar
                   </button>
+                </div>
+              ) : hasLocation && !isLoaded ? (
+                <div className="gps-map-preview" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="spinner-map"></div>
                 </div>
               ) : (
                 <button
@@ -553,7 +599,7 @@ const Create = () => {
               )}
             </div>
 
-            {/* Checkbox Tresesenta - Verificación */}
+            {/* Checkbox Tresesenta */}
             <label className="tresesenta-checkbox">
               <input
                 type="checkbox"
@@ -573,7 +619,6 @@ const Create = () => {
               </div>
             </label>
 
-            {/* Shoe Model + Verification (only when checkbox is checked) */}
             {formData.used_tresesenta && (
               <>
                 <div className="field-group">
@@ -595,7 +640,6 @@ const Create = () => {
                     <span className="field-hint">No tienes modelos en tu colección aún.</span>
                   )}
                 </div>
-
               </>
             )}
 
