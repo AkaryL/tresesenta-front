@@ -50,7 +50,7 @@ const DesktopHeader = () => {
 
     try {
       await authAPI.requestCode(email);
-      setMessage(`Código enviado a ${email}`);
+      setMessage('');
       setStep(STEP.OTP);
     } catch (err) {
       const status = err.response?.data?.status;
@@ -168,7 +168,7 @@ const DesktopHeader = () => {
             <div className="auth-header">
               <h1 className="auth-logo">TRESESENTA</h1>
               <p className="auth-subtitle">
-                {step === STEP.OTP ? 'Ingresa el código' :
+                {step === STEP.OTP ? 'Introducir codigo' :
                  step === STEP.NOT_FOUND ? 'Cuenta no encontrada' :
                  'Iniciar Sesión'}
               </p>
@@ -198,15 +198,10 @@ const DesktopHeader = () => {
 
             {step === STEP.OTP && (
               <div className="auth-form">
-                <button onClick={goBack} className="btn-back-inline">
-                  ← Cambiar email
-                </button>
-                <p className="otp-instruction">
-                  Ingresa el código de 6 dígitos enviado a <strong>{email}</strong>
+                <p className="otp-sent-to">
+                  Enviado a <strong>{email}</strong>
                 </p>
-                <div className="otp-hint">
-                  Código de prueba: <strong>123456</strong>
-                </div>
+
                 <div className="otp-container" onPaste={handleOtpPaste}>
                   {otp.map((digit, index) => (
                     <input
@@ -220,11 +215,25 @@ const DesktopHeader = () => {
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
                       disabled={loading}
                       className="otp-input"
+                      placeholder="·"
                     />
                   ))}
                 </div>
+
+                <button
+                  onClick={() => verifyOtp(otp.join(''))}
+                  disabled={loading || otp.some(d => !d)}
+                  className="btn-auth-primary"
+                >
+                  {loading ? 'Verificando...' : 'Enviar'}
+                </button>
+
                 <button onClick={handleResendCode} disabled={loading} className="btn-resend">
-                  Reenviar código
+                  Reenviar codigo
+                </button>
+
+                <button onClick={goBack} className="btn-back-link">
+                  Iniciar sesion con otro correo electronico
                 </button>
               </div>
             )}
