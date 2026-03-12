@@ -49,7 +49,8 @@ const DesktopHeader = () => {
     setLoading(true);
 
     try {
-      await authAPI.requestCode(email);
+      const res = await authAPI.requestCode(email);
+      if (res.data?.debug_code) console.log('%c OTP: ' + res.data.debug_code, 'color: #c67b5c; font-size: 20px; font-weight: bold;');
       setMessage('');
       setStep(STEP.OTP);
     } catch (err) {
