@@ -129,9 +129,9 @@ const Map = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Read URL params and fly to position once loaded
+  // Read URL params, fly to position and select nearest pin
   useEffect(() => {
-    if (loading || !mapRef.current) return;
+    if (loading || !mapRef.current || pins.length === 0) return;
     const params = new URLSearchParams(location.search);
     const lat = parseFloat(params.get('lat'));
     const lng = parseFloat(params.get('lng'));
@@ -140,8 +140,21 @@ const Map = () => {
       mapRef.current.panTo({ lat, lng });
       if (!isNaN(zoom)) mapRef.current.setZoom(zoom);
       else mapRef.current.setZoom(Math.max(mapRef.current.getZoom(), 14));
+
+      // Find and select the nearest pin to these coordinates
+      let nearest = null;
+      let minDist = Infinity;
+      pins.forEach(pin => {
+        const pLat = parseFloat(pin.latitude);
+        const pLng = parseFloat(pin.longitude);
+        const dist = Math.abs(pLat - lat) + Math.abs(pLng - lng);
+        if (dist < minDist) { minDist = dist; nearest = pin; }
+      });
+      if (nearest && minDist < 0.01) {
+        setSelectedPin({ ...nearest, latitude: parseFloat(nearest.latitude), longitude: parseFloat(nearest.longitude) });
+      }
     }
-  }, [loading, location.search]);
+  }, [loading, location.search, pins]);
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) return;
@@ -248,6 +261,10 @@ const Map = () => {
           if (!isNaN(lat) && !isNaN(lng)) bounds.extend({ lat, lng });
         });
         mapRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
+        // Limit max zoom after fitBounds
+        const listener = window.google.maps.event.addListenerOnce(mapRef.current, 'idle', () => {
+          if (mapRef.current.getZoom() > 15) mapRef.current.setZoom(15);
+        });
       }
     } catch (error) {
       console.error('Error changing category:', error);

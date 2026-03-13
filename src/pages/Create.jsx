@@ -169,57 +169,46 @@ const Create = () => {
     }
   };
 
-  // Location search using Google Places API (New) via HTTP
+  // Location search using Google Geocoding API (forward geocode)
   const handleLocationSearch = (value) => {
     setLocationSearch(value);
     setLocationResults([]);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    if (!value.trim() || value.length < 3) return;
+    if (!value.trim() || value.length < 3 || !geocoderRef.current) return;
 
     searchTimeoutRef.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-        const body = {
-          textQuery: value,
-          languageCode: 'es',
-          regionCode: 'MX',
-          maxResultCount: 5,
+        const request = {
+          address: value + ', México',
         };
 
         // Bias towards user's current location
         if (formData.latitude && formData.longitude) {
           const lat = parseFloat(formData.latitude);
           const lng = parseFloat(formData.longitude);
-          body.locationBias = {
-            circle: { center: { latitude: lat, longitude: lng }, radius: 50000 },
-          };
+          request.bounds = new window.google.maps.LatLngBounds(
+            new window.google.maps.LatLng(lat - 0.5, lng - 0.5),
+            new window.google.maps.LatLng(lat + 0.5, lng + 0.5)
+          );
         }
 
-        const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location',
-          },
-          body: JSON.stringify(body),
+        geocoderRef.current.geocode(request, (results, status) => {
+          if (status === 'OK' && results) {
+            setLocationResults(results.slice(0, 5).map(r => ({
+              place_id: r.place_id,
+              display_name: r.formatted_address,
+              main_text: r.formatted_address.split(',').slice(0, 2).join(','),
+              lat: r.geometry.location.lat(),
+              lng: r.geometry.location.lng(),
+            })));
+          } else {
+            setLocationResults([]);
+          }
+          setSearchLoading(false);
         });
-        const data = await res.json();
-        if (data.places) {
-          setLocationResults(data.places.map(p => ({
-            place_id: p.id,
-            display_name: p.formattedAddress || p.displayName?.text || '',
-            main_text: p.displayName?.text || '',
-            lat: p.location?.latitude,
-            lng: p.location?.longitude,
-          })));
-        } else {
-          setLocationResults([]);
-        }
       } catch (e) {
         console.error('Search error:', e);
-      } finally {
         setSearchLoading(false);
       }
     }, 400);
@@ -235,7 +224,7 @@ const Create = () => {
       latitude: lat.toString(),
       longitude: lng.toString(),
     }));
-    setLocationSearch(result.main_text || result.display_name.split(',').slice(0, 2).join(','));
+    setLocationSearch(result.main_text || result.display_name);
     setLocationResults([]);
     reverseGeocode(lat, lng);
 

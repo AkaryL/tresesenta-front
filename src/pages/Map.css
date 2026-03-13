@@ -387,10 +387,8 @@
   color: #666;
   line-height: 1.5;
   margin: 0 0 0.75rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 .floating-detail-body .overlay-actions {
@@ -1060,10 +1058,8 @@
   color: #666;
   line-height: 1.55;
   margin: 0 0 1rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 /* Actions */
