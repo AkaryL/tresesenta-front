@@ -113,13 +113,22 @@ const Badges = () => {
     const fetchBadges = async () => {
       if (isPassport) {
         // /passport -> show local geographical stamps (sellos)
+        // Fetch user's earned badges to mark which sellos are unlocked
+        let earnedBadgeNames = new Set();
+        try {
+          const res = await badgesAPI.getMine();
+          const earned = res.data.badges || [];
+          earnedBadgeNames = new Set(earned.map(b => b.name || b.name_es));
+        } catch (e) {
+          // User not logged in or API error - all locked
+        }
         setBadges(LOCAL_BADGES.map((b, index) => ({
           id: index + 1,
           name: b.name,
           description: `Publica un pin en ${b.state} para desbloquear`,
           image: b.image,
           state: b.state,
-          unlocked: false,
+          unlocked: earnedBadgeNames.has(b.name),
         })));
         setLoading(false);
         return;
