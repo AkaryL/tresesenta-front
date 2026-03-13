@@ -517,7 +517,15 @@
   gap: 0.375rem;
 }
 
-/* Badge Emoji */
+/* Badge Image / Emoji */
+.admin-badge-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .badge-emoji-lg {
   font-size: 1.5rem;
   flex-shrink: 0;

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
+import logoTresesenta from '../assets/logos/TRESESENTA.png';
 import './DesktopHeader.css';
 
 const STEP = {
@@ -138,7 +139,9 @@ const DesktopHeader = () => {
     <>
       <header className="desktop-header">
         <nav className="desktop-nav">
-          <Link to="/" className="desktop-brand">TRESESENTA</Link>
+          <Link to="/" className="desktop-brand">
+            <img src={logoTresesenta} alt="Tresesenta" className="desktop-brand-logo" />
+          </Link>
           <div className="desktop-nav-links">
             <Link to="/map" className="desktop-nav-link">MAPA 360</Link>
             {isAuthenticated ? (

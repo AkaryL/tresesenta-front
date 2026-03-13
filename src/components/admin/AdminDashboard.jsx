@@ -1074,7 +1074,11 @@ const AdminDashboard = () => {
               <div className="section-body">
                 {badges.map(b => (
                   <div key={b.id} className="admin-row">
-                    <span className="badge-emoji-lg">{b.emoji || '🏅'}</span>
+                    {b.image_url ? (
+                      <img src={b.image_url} alt={b.name_es || b.name} className="admin-badge-img" />
+                    ) : (
+                      <span className="badge-emoji-lg">{b.emoji || '🏅'}</span>
+                    )}
                     <div className="admin-row-info" style={{ flex: 1 }}>
                       <strong>{b.name_es || b.name}</strong>
                       <span className="text-muted text-small">
@@ -1082,7 +1086,7 @@ const AdminDashboard = () => {
                       </span>
                       <div className="tag-row">
                         <span className="tag">{b.rarity || 'common'}</span>
-                        <span className="tag">{b.geographic_scope || 'nacional'}</span>
+                        <span className="tag">{b.geographic_scope || 'regional'}</span>
                         <span className="text-muted text-small">{b.users_with_badge || 0} usuarios</span>
                       </div>
                     </div>

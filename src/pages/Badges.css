@@ -438,6 +438,29 @@
 }
 
 /* ========================================
+   TABLET
+   ======================================== */
+@media (min-width: 768px) {
+  .badges-content {
+    padding: 1.5rem 2rem;
+  }
+
+  .badges-grid-full {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .badge-image-container {
+    width: 72px;
+    height: 72px;
+  }
+
+  .badge-card-name {
+    font-size: 0.75rem;
+  }
+}
+
+/* ========================================
    DESKTOP
    ======================================== */
 @media (min-width: 1024px) {
@@ -492,25 +515,25 @@
     margin-right: auto;
   }
 
-  /* Content pulls up over hero */
+  /* Content pulls up over hero - wider */
   .badges-content {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: -2rem auto 3rem;
-    padding: 0 2rem;
+    padding: 0 3rem;
     position: relative;
     z-index: 10;
   }
 
   .badges-summary {
-    padding: 1.5rem 2rem;
+    padding: 1.75rem 2.5rem;
     border-radius: 16px;
-    gap: 1.75rem;
+    gap: 2rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
 
   .summary-donut {
-    width: 88px;
-    height: 88px;
+    width: 92px;
+    height: 92px;
   }
 
   .donut-number {
@@ -527,11 +550,11 @@
 
   .badges-grid-full {
     grid-template-columns: repeat(5, 1fr);
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .badge-card {
-    padding: 1.25rem 0.75rem;
+    padding: 1.5rem 0.75rem;
     border-radius: 16px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   }
@@ -541,12 +564,12 @@
   }
 
   .badge-image-container {
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
   }
 
   .badge-card-name {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
   }
 
   .badge-tooltip {
@@ -573,18 +596,88 @@
   }
 }
 
+/* ========================================
+   LARGE DESKTOP (1440px+)
+   ======================================== */
 @media (min-width: 1440px) {
-  .badges-grid-full {
-    grid-template-columns: repeat(6, 1fr);
-    gap: 1.25rem;
+  .badges-content {
+    max-width: 1400px;
+    padding: 0 4rem;
   }
 
-  .badges-content {
-    max-width: 1200px;
+  .badges-hero-title {
+    font-size: 3rem;
+  }
+
+  .badges-summary {
+    padding: 2rem 3rem;
+    gap: 2.5rem;
+  }
+
+  .summary-donut {
+    width: 100px;
+    height: 100px;
+  }
+
+  .donut-number {
+    font-size: 1.75rem;
+  }
+
+  .summary-text {
+    font-size: 1rem;
+  }
+
+  .summary-bar {
+    height: 7px;
+  }
+
+  .badges-grid-full {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1.5rem;
+  }
+
+  .badge-card {
+    padding: 1.75rem 1rem;
   }
 
   .badge-image-container {
-    width: 88px;
-    height: 88px;
+    width: 100px;
+    height: 100px;
+  }
+
+  .badge-card-name {
+    font-size: 0.9375rem;
+  }
+}
+
+/* ========================================
+   EXTRA LARGE DESKTOP (1920px+)
+   ======================================== */
+@media (min-width: 1920px) {
+  .badges-content {
+    max-width: 1700px;
+    padding: 0 5rem;
+  }
+
+  .badges-grid-full {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1.75rem;
+  }
+
+  .badge-card {
+    padding: 2rem 1rem;
+  }
+
+  .badge-image-container {
+    width: 110px;
+    height: 110px;
+  }
+
+  .badge-card-name {
+    font-size: 1rem;
+  }
+
+  .badges-summary {
+    padding: 2.25rem 3.5rem;
   }
 }
