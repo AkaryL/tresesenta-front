@@ -150,27 +150,26 @@ const Profile = () => {
 
   const menuItems = [
     { icon: Plus, label: 'Crear Pin', action: () => navigate('/create') },
-    { icon: Heart, label: 'Mis Favoritos', action: () => navigate('/map?filter=favorites') },
+    { icon: Heart, label: 'Mis Favoritos', action: () => navigate('/map?category=favoritos') },
     { icon: Route, label: 'Ver rutas', action: () => navigate('/routes') },
     { icon: Trophy, label: 'Ranking', action: () => navigate('/leaderboard') },
   ];
 
   return (
     <div className="profile-page">
-      {/* Desktop Header */}
-      <DesktopHeader />
-
       {/* Admin Tab Toggle - only for admin users */}
       {user?.is_admin && (
         <div className="admin-tab-toggle">
           <button
             className={`tab-btn ${activeTab === 'passport' ? 'active' : ''}`}
+            style={activeTab === 'passport' ? { background: currentColorScheme.bg, color: currentColorScheme.textColor } : {}}
             onClick={() => setActiveTab('passport')}
           >
             Pasaporte
           </button>
           <button
             className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+            style={activeTab === 'admin' ? { background: currentColorScheme.bg, color: currentColorScheme.textColor } : {}}
             onClick={() => setActiveTab('admin')}
           >
             <Shield size={14} />
@@ -185,32 +184,17 @@ const Profile = () => {
         </Suspense>
       ) : (
       <>
-      {/* Pasaporte Header */}
-      <div
-        className="profile-header-section"
-        style={{ backgroundColor: currentColorScheme.bg }}
-      >
-        {/* Ondas decorativas */}
-        <svg className="passport-waves" viewBox="0 0 400 100" preserveAspectRatio="none">
-          <path
-            d="M0,50 Q50,30 100,50 T200,50 T300,50 T400,50 L400,100 L0,100 Z"
-            fill={currentColorScheme.wave}
-            opacity="0.3"
-          />
-          <path
-            d="M0,60 Q50,40 100,60 T200,60 T300,60 T400,60 L400,100 L0,100 Z"
-            fill={currentColorScheme.wave}
-            opacity="0.2"
-          />
-          <path
-            d="M0,70 Q50,50 100,70 T200,70 T300,70 T400,70 L400,100 L0,100 Z"
-            fill={currentColorScheme.wave}
-            opacity="0.15"
-          />
-        </svg>
-
-        <h1 className="passport-title" style={{ color: currentColorScheme.textColor }}>PASAPORTE 360</h1>
-      </div>
+      {/* Hero Section */}
+      <section className="profile-hero" style={{ background: `linear-gradient(135deg, ${currentColorScheme.bg}, ${currentColorScheme.bg}dd)` }}>
+        <DesktopHeader />
+        <div className="profile-hero-content">
+          <span className="profile-hero-brand" style={{ color: currentColorScheme.textColor, opacity: 0.6 }}>TRESESENTA</span>
+          <h1 className="profile-hero-title" style={{ color: currentColorScheme.textColor }}>Mi Perfil</h1>
+          <p className="profile-hero-description" style={{ color: currentColorScheme.textColor, opacity: 0.6 }}>
+            Tu pasaporte de explorador
+          </p>
+        </div>
+      </section>
 
       {/* Profile Card */}
       <div className="profile-card">

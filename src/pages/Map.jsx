@@ -133,6 +133,17 @@ const Map = () => {
   useEffect(() => {
     if (loading || !mapRef.current || pins.length === 0) return;
     const params = new URLSearchParams(location.search);
+
+    // Handle category param from profile "Mis Favoritos"
+    const categoryParam = params.get('category');
+    if (categoryParam) {
+      const match = FIXED_CATEGORIES.find(c => c.id === categoryParam);
+      if (match && selectedCategory !== match.id) {
+        handleCategoryChange(match.id);
+        return;
+      }
+    }
+
     const lat = parseFloat(params.get('lat'));
     const lng = parseFloat(params.get('lng'));
     const zoom = parseInt(params.get('zoom'));
