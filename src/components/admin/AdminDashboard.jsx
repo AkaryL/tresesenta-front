@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, MapPin, Shield, Award, Settings,
   ChevronDown, Search, Eye, EyeOff, Check, X,
-  Zap, History, ChevronLeft, ChevronRight
+  Zap, History, ChevronLeft, ChevronRight, Trash2, Plus, Camera, Pencil
 } from 'lucide-react';
 import { adminAPI } from '../../services/api';
 import { getSocket } from '../../services/socket';
@@ -36,6 +36,25 @@ const AdminDashboard = () => {
   const [historialSearch, setHistorialSearch] = useState('');
   const [historialPage, setHistorialPage] = useState(1);
   const HISTORIAL_PAGE_SIZE = 10;
+
+  // Badges UI state
+  const [badgeSearch, setBadgeSearch] = useState('');
+  const [badgePage, setBadgePage] = useState(1);
+  const BADGE_PAGE_SIZE = 5;
+  const [showCreateBadge, setShowCreateBadge] = useState(false);
+  const [newBadge, setNewBadge] = useState({
+    name: '', name_es: '', description: '', condition_type: 'region_visit',
+    geographic_scope: 'regional', rarity: 'common', category: 'geographical',
+    points_reward: 100, points_required: 0, display_order: 0, condition_value: {},
+  });
+  const [newBadgeImage, setNewBadgeImage] = useState(null);
+  const [creatingBadge, setCreatingBadge] = useState(false);
+  const badgeImageInputRef = useRef(null);
+  const badgeChangeImageRef = useRef(null);
+  const [changingImageId, setChangingImageId] = useState(null);
+  const [editingBadge, setEditingBadge] = useState(null); // badge being edited
+  const [editBadgeData, setEditBadgeData] = useState({});
+  const [savingEdit, setSavingEdit] = useState(false);
 
   // Expanded verification cards
   const [expandedVerif, setExpandedVerif] = useState({});
@@ -269,6 +288,109 @@ const AdminDashboard = () => {
       showToast('Error', 'error');
     } finally {
       setSavingId(null);
+    }
+  };
+
+  const handleDeleteBadge = async (badge) => {
+    setSavingId(badge.id);
+    try {
+      await adminAPI.deleteBadge(badge.id);
+      setBadges(prev => prev.filter(b => b.id !== badge.id));
+      showToast('Medalla eliminada');
+      setConfirmAction(null);
+    } catch (e) {
+      showToast('Error al eliminar', 'error');
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const handleCreateBadge = async () => {
+    if (!newBadge.name || !newBadge.name_es || !newBadge.condition_type) {
+      showToast('Nombre y tipo de condicion requeridos', 'error');
+      return;
+    }
+    setCreatingBadge(true);
+    try {
+      let image_url = null;
+      if (newBadgeImage) {
+        const formData = new FormData();
+        formData.append('images', newBadgeImage);
+        const uploadRes = await adminAPI.uploadImages
+          ? adminAPI.uploadImages(formData)
+          : (await import('../../services/api')).default.post('/upload/images', formData);
+        image_url = uploadRes.data.images?.[0];
+      }
+      const res = await adminAPI.createBadge({ ...newBadge, image_url });
+      setBadges(prev => [...prev, res.data.badge]);
+      setShowCreateBadge(false);
+      setNewBadge({
+        name: '', name_es: '', description: '', condition_type: 'region_visit',
+        geographic_scope: 'regional', rarity: 'common', category: 'geographical',
+        points_reward: 100, points_required: 0, display_order: 0,
+      });
+      setNewBadgeImage(null);
+      showToast('Medalla creada');
+    } catch (e) {
+      showToast('Error al crear medalla', 'error');
+    } finally {
+      setCreatingBadge(false);
+    }
+  };
+
+  const handleChangeBadgeImage = async (badgeId, file) => {
+    setChangingImageId(badgeId);
+    try {
+      const formData = new FormData();
+      formData.append('images', file);
+      const uploadRes = await (await import('../../services/api')).default.post('/upload/images', formData);
+      const image_url = uploadRes.data.images?.[0];
+      if (image_url) {
+        await adminAPI.updateBadge(badgeId, { image_url });
+        setBadges(prev => prev.map(b => b.id === badgeId ? { ...b, image_url } : b));
+        showToast('Imagen actualizada');
+      }
+    } catch (e) {
+      showToast('Error al cambiar imagen', 'error');
+    } finally {
+      setChangingImageId(null);
+    }
+  };
+
+  const openEditBadge = (badge) => {
+    setEditingBadge(badge.id);
+    setEditBadgeData({
+      name_es: badge.name_es || badge.name || '',
+      description: badge.description_es || badge.description || '',
+      condition_type: badge.condition_type || 'region_visit',
+      condition_value: badge.condition_value || {},
+      geographic_scope: badge.geographic_scope || 'regional',
+      rarity: badge.rarity || 'common',
+      category: badge.category || 'geographical',
+      points_reward: badge.points_reward || 0,
+      display_order: badge.display_order || 0,
+    });
+  };
+
+  const handleSaveEditBadge = async () => {
+    setSavingEdit(true);
+    try {
+      const payload = {
+        name_es: editBadgeData.name_es,
+        description: editBadgeData.description,
+        geographic_scope: editBadgeData.geographic_scope,
+        rarity: editBadgeData.rarity,
+        points_reward: editBadgeData.points_reward,
+        display_order: editBadgeData.display_order,
+      };
+      await adminAPI.updateBadge(editingBadge, payload);
+      setBadges(prev => prev.map(b => b.id === editingBadge ? { ...b, ...payload } : b));
+      setEditingBadge(null);
+      showToast('Medalla actualizada');
+    } catch (e) {
+      showToast('Error al actualizar', 'error');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -1061,9 +1183,17 @@ const AdminDashboard = () => {
 
       {/* Section: Badges */}
       <div className="admin-section">
-        <SectionHeader id="badges" icon={Award} title="Badges / Medallas" badge={0} />
+        <SectionHeader id="badges" icon={Award} title="Badges / Medallas" badge={badges.length} />
         <AnimatePresence>
-          {openSection === 'badges' && (
+          {openSection === 'badges' && (() => {
+            const filtered = badges.filter(b =>
+              (b.name_es || b.name || '').toLowerCase().includes(badgeSearch.toLowerCase()) ||
+              (b.description_es || b.description || '').toLowerCase().includes(badgeSearch.toLowerCase())
+            );
+            const totalPages = Math.max(1, Math.ceil(filtered.length / BADGE_PAGE_SIZE));
+            const paginated = filtered.slice((badgePage - 1) * BADGE_PAGE_SIZE, badgePage * BADGE_PAGE_SIZE);
+
+            return (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
@@ -1072,13 +1202,159 @@ const AdminDashboard = () => {
               className="section-content"
             >
               <div className="section-body">
-                {badges.map(b => (
+                {/* Search + Create */}
+                <div className="badges-toolbar">
+                  <div className="search-bar-small">
+                    <Search size={14} />
+                    <input
+                      type="text"
+                      placeholder="Buscar medalla..."
+                      value={badgeSearch}
+                      onChange={(e) => { setBadgeSearch(e.target.value); setBadgePage(1); }}
+                    />
+                  </div>
+                  <button className="btn-create-badge" onClick={() => setShowCreateBadge(true)}>
+                    <Plus size={14} />
+                    Nueva medalla
+                  </button>
+                </div>
+
+                {/* Create Badge Form */}
+                <AnimatePresence>
+                  {showCreateBadge && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="create-badge-form"
+                    >
+                      <h4>Crear nueva medalla</h4>
+                      <div className="form-grid-badges">
+                        <div className="form-field">
+                          <label>Nombre</label>
+                          <input type="text" value={newBadge.name} onChange={e => setNewBadge(p => ({ ...p, name: e.target.value }))} placeholder="Badge name" />
+                        </div>
+                        <div className="form-field">
+                          <label>Nombre (ES)</label>
+                          <input type="text" value={newBadge.name_es} onChange={e => setNewBadge(p => ({ ...p, name_es: e.target.value }))} placeholder="Nombre en español" />
+                        </div>
+                        <div className="form-field full-width">
+                          <label>Descripcion</label>
+                          <input type="text" value={newBadge.description} onChange={e => setNewBadge(p => ({ ...p, description: e.target.value }))} placeholder="Descripcion de la medalla" />
+                        </div>
+                        <div className="form-field">
+                          <label>Tipo condicion</label>
+                          <select value={newBadge.condition_type} onChange={e => setNewBadge(p => ({ ...p, condition_type: e.target.value, condition_value: {} }))}>
+                            <option value="region_visit">Visita region</option>
+                            <option value="city_visit">Visita ciudad</option>
+                            <option value="pin_count">Cantidad de pines</option>
+                            <option value="points">Puntos</option>
+                            <option value="category_visit">Visita categoria</option>
+                          </select>
+                        </div>
+
+                        {/* Dynamic condition fields */}
+                        {newBadge.condition_type === 'region_visit' && (
+                          <div className="form-field">
+                            <label>Region</label>
+                            <input type="text" value={newBadge.condition_value?.region || ''} onChange={e => setNewBadge(p => ({ ...p, condition_value: { ...p.condition_value, region: e.target.value } }))} placeholder="Ej: Huasteca, Riviera Nayarita" />
+                          </div>
+                        )}
+                        {newBadge.condition_type === 'city_visit' && (<>
+                          <div className="form-field">
+                            <label>Ciudad</label>
+                            <input type="text" value={newBadge.condition_value?.city || ''} onChange={e => setNewBadge(p => ({ ...p, condition_value: { ...p.condition_value, city: e.target.value } }))} placeholder="Ej: Guadalajara, CDMX" />
+                          </div>
+                          <div className="form-field">
+                            <label>Estado</label>
+                            <input type="text" value={newBadge.condition_value?.state || ''} onChange={e => setNewBadge(p => ({ ...p, condition_value: { ...p.condition_value, state: e.target.value } }))} placeholder="Ej: Jalisco, CDMX" />
+                          </div>
+                        </>)}
+                        {newBadge.condition_type === 'pin_count' && (
+                          <div className="form-field">
+                            <label>Cantidad de pines requeridos</label>
+                            <input type="number" value={newBadge.condition_value?.count || ''} onChange={e => setNewBadge(p => ({ ...p, condition_value: { ...p.condition_value, count: parseInt(e.target.value) || 0 } }))} placeholder="Ej: 10" />
+                          </div>
+                        )}
+                        {newBadge.condition_type === 'points' && (
+                          <div className="form-field">
+                            <label>Puntos requeridos</label>
+                            <input type="number" value={newBadge.condition_value?.min_points || ''} onChange={e => setNewBadge(p => ({ ...p, condition_value: { ...p.condition_value, min_points: parseInt(e.target.value) || 0 } }))} placeholder="Ej: 5000" />
+                          </div>
+                        )}
+                        {newBadge.condition_type === 'category_visit' && (<>
+                          <div className="form-field">
+                            <label>Categoria a visitar</label>
+                            <input type="text" value={newBadge.condition_value?.category || ''} onChange={e => setNewBadge(p => ({ ...p, condition_value: { ...p.condition_value, category: e.target.value } }))} placeholder="Ej: museos, cafes, naturaleza" />
+                          </div>
+                          <div className="form-field">
+                            <label>Cantidad de visitas</label>
+                            <input type="number" value={newBadge.condition_value?.count || ''} onChange={e => setNewBadge(p => ({ ...p, condition_value: { ...p.condition_value, count: parseInt(e.target.value) || 0 } }))} placeholder="Ej: 5" />
+                          </div>
+                        </>)}
+
+                        <div className="form-field">
+                          <label>Alcance</label>
+                          <select value={newBadge.geographic_scope} onChange={e => setNewBadge(p => ({ ...p, geographic_scope: e.target.value }))}>
+                            <option value="regional">Regional</option>
+                            <option value="national">Nacional</option>
+                            <option value="state">Estatal</option>
+                          </select>
+                        </div>
+                        <div className="form-field">
+                          <label>Rareza</label>
+                          <select value={newBadge.rarity} onChange={e => setNewBadge(p => ({ ...p, rarity: e.target.value }))}>
+                            <option value="common">Common</option>
+                            <option value="rare">Rare</option>
+                            <option value="epic">Epic</option>
+                            <option value="legendary">Legendary</option>
+                          </select>
+                        </div>
+                        <div className="form-field">
+                          <label>Categoria</label>
+                          <select value={newBadge.category} onChange={e => setNewBadge(p => ({ ...p, category: e.target.value }))}>
+                            <option value="geographical">Geografica</option>
+                            <option value="exploration">Exploracion</option>
+                            <option value="social">Social</option>
+                            <option value="achievement">Logro</option>
+                          </select>
+                        </div>
+                        <div className="form-field">
+                          <label>Puntos recompensa</label>
+                          <input type="number" value={newBadge.points_reward} onChange={e => setNewBadge(p => ({ ...p, points_reward: parseInt(e.target.value) || 0 }))} />
+                        </div>
+                        <div className="form-field">
+                          <label>Orden</label>
+                          <input type="number" value={newBadge.display_order} onChange={e => setNewBadge(p => ({ ...p, display_order: parseInt(e.target.value) || 0 }))} />
+                        </div>
+                        <div className="form-field">
+                          <label>Imagen</label>
+                          <input type="file" accept="image/*" ref={badgeImageInputRef} onChange={e => setNewBadgeImage(e.target.files[0])} />
+                        </div>
+                      </div>
+                      <div className="create-badge-actions">
+                        <button className="btn-cancel" onClick={() => { setShowCreateBadge(false); setNewBadgeImage(null); }}>Cancelar</button>
+                        <button className="btn-save" onClick={handleCreateBadge} disabled={creatingBadge}>
+                          {creatingBadge ? 'Creando...' : 'Crear medalla'}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Badge List */}
+                {paginated.map(b => (
                   <div key={b.id} className="admin-row">
-                    {b.image_url ? (
-                      <img src={b.image_url} alt={b.name_es || b.name} className="admin-badge-img" />
-                    ) : (
-                      <span className="badge-emoji-lg">{b.emoji || '🏅'}</span>
-                    )}
+                    <div className="admin-badge-img-wrapper" onClick={() => { setChangingImageId(b.id); badgeChangeImageRef.current?.click(); }}>
+                      {b.image_url ? (
+                        <img src={b.image_url} alt={b.name_es || b.name} className="admin-badge-img" />
+                      ) : (
+                        <span className="badge-emoji-lg">{b.emoji || '🏅'}</span>
+                      )}
+                      <div className="badge-img-overlay">
+                        <Camera size={14} />
+                      </div>
+                    </div>
                     <div className="admin-row-info" style={{ flex: 1 }}>
                       <strong>{b.name_es || b.name}</strong>
                       <span className="text-muted text-small">
@@ -1096,14 +1372,123 @@ const AdminDashboard = () => {
                       disabled={savingId === b.id}
                       title={b.is_active ? 'Desactivar' : 'Activar'}
                     />
+                    <button
+                      className="btn-edit-badge"
+                      onClick={() => openEditBadge(b)}
+                      title="Editar medalla"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      className="btn-delete-badge"
+                      onClick={() => setConfirmAction({ type: 'delete-badge', badge: b })}
+                      title="Eliminar medalla"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 ))}
-                {badges.length === 0 && <p className="section-empty">No hay badges configurados</p>}
+                {filtered.length === 0 && <p className="section-empty">No se encontraron medallas</p>}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="badges-pagination">
+                    <button disabled={badgePage <= 1} onClick={() => setBadgePage(p => p - 1)}>
+                      <ChevronLeft size={16} />
+                    </button>
+                    <span>{badgePage} / {totalPages}</span>
+                    <button disabled={badgePage >= totalPages} onClick={() => setBadgePage(p => p + 1)}>
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Hidden file input for changing badge image */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={badgeChangeImageRef}
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file && changingImageId) {
+                      handleChangeBadgeImage(changingImageId, file);
+                    }
+                    e.target.value = '';
+                  }}
+                />
               </div>
             </motion.div>
-          )}
+            );
+          })()}
         </AnimatePresence>
       </div>
+
+      {/* Confirm Delete Badge Modal */}
+      {confirmAction?.type === 'delete-badge' && (
+        <div className="confirm-overlay" onClick={() => setConfirmAction(null)}>
+          <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+            <p>Eliminar <strong>{confirmAction.badge.name_es || confirmAction.badge.name}</strong>?</p>
+            <p className="text-muted text-small">Esta accion no se puede deshacer.</p>
+            <div className="confirm-actions">
+              <button className="btn-cancel" onClick={() => setConfirmAction(null)}>Cancelar</button>
+              <button className="btn-danger" onClick={() => handleDeleteBadge(confirmAction.badge)} disabled={savingId === confirmAction.badge.id}>
+                {savingId === confirmAction.badge.id ? 'Eliminando...' : 'Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Badge Modal */}
+      {editingBadge && (
+        <div className="confirm-overlay" onClick={() => setEditingBadge(null)}>
+          <div className="edit-badge-modal" onClick={e => e.stopPropagation()}>
+            <h3>Editar medalla</h3>
+            <div className="form-grid-badges">
+              <div className="form-field full-width">
+                <label>Nombre (ES)</label>
+                <input type="text" value={editBadgeData.name_es} onChange={e => setEditBadgeData(p => ({ ...p, name_es: e.target.value }))} />
+              </div>
+              <div className="form-field full-width">
+                <label>Descripcion</label>
+                <input type="text" value={editBadgeData.description} onChange={e => setEditBadgeData(p => ({ ...p, description: e.target.value }))} />
+              </div>
+              <div className="form-field">
+                <label>Alcance</label>
+                <select value={editBadgeData.geographic_scope} onChange={e => setEditBadgeData(p => ({ ...p, geographic_scope: e.target.value }))}>
+                  <option value="regional">Regional</option>
+                  <option value="national">Nacional</option>
+                  <option value="state">Estatal</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Rareza</label>
+                <select value={editBadgeData.rarity} onChange={e => setEditBadgeData(p => ({ ...p, rarity: e.target.value }))}>
+                  <option value="common">Common</option>
+                  <option value="rare">Rare</option>
+                  <option value="epic">Epic</option>
+                  <option value="legendary">Legendary</option>
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Puntos recompensa</label>
+                <input type="number" value={editBadgeData.points_reward} onChange={e => setEditBadgeData(p => ({ ...p, points_reward: parseInt(e.target.value) || 0 }))} />
+              </div>
+              <div className="form-field">
+                <label>Orden</label>
+                <input type="number" value={editBadgeData.display_order} onChange={e => setEditBadgeData(p => ({ ...p, display_order: parseInt(e.target.value) || 0 }))} />
+              </div>
+            </div>
+            <div className="create-badge-actions">
+              <button className="btn-cancel" onClick={() => setEditingBadge(null)}>Cancelar</button>
+              <button className="btn-save" onClick={handleSaveEditBadge} disabled={savingEdit}>
+                {savingEdit ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Section: Points & Settings */}
       <div className="admin-section">

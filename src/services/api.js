@@ -121,6 +121,7 @@ export const adminAPI = {
   getBadges: () => api.get('/admin/badges'),
   createBadge: (data) => api.post('/admin/badges', data),
   updateBadge: (id, data) => api.put(`/admin/badges/${id}`, data),
+  deleteBadge: (id) => api.delete(`/admin/badges/${id}`),
   // Point Actions
   getPointActions: () => api.get('/admin/point-actions'),
   updatePointAction: (id, data) => api.put(`/admin/point-actions/${id}`, data),
