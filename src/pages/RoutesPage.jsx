@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Clock, Users, Star, Navigation, Plus, ExternalLink, X, Heart, SlidersHorizontal } from 'lucide-react';
@@ -21,14 +21,15 @@ const haversine = (lat1, lng1, lat2, lng2) => {
 const formatDist = (km) => km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
 
 // ─── Carousel cover ───────────────────────────────────────────────────────────
-const RouteCardCover = ({ images }) => {
+const RouteCardCover = ({ images, isHovered }) => {
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
     if (!images || images.length <= 1) return;
+    if (!isHovered) { setIdx(0); return; }
     const t = setInterval(() => setIdx(i => (i + 1) % images.length), 2500);
     return () => clearInterval(t);
-  }, [images]);
+  }, [images, isHovered]);
 
   if (!images || images.length === 0) return null;
 
@@ -39,6 +40,24 @@ const RouteCardCover = ({ images }) => {
       alt=""
       className={`route-carousel-img ${i === idx ? 'active' : ''}`}
     />
+  ));
+};
+
+// ─── Modal cover carousel ────────────────────────────────────────────────────
+const ModalCoverCarousel = ({ pins }) => {
+  const [idx, setIdx] = useState(0);
+  const allImages = pins.flatMap(p => p.image_urls || []).filter(Boolean);
+
+  useEffect(() => {
+    if (allImages.length <= 1) return;
+    const t = setInterval(() => setIdx(i => (i + 1) % allImages.length), 3000);
+    return () => clearInterval(t);
+  }, [allImages.length]);
+
+  if (allImages.length === 0) return <div className="modal-cover-placeholder"><span>🗺️</span></div>;
+
+  return allImages.map((url, i) => (
+    <img key={i} src={url} alt="" className={`route-carousel-img ${i === idx ? 'active' : ''}`} />
   ));
 };
 
@@ -57,6 +76,10 @@ const RoutesPage = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [filter, setFilter] = useState({ search: '', duration: '' });
   const [showFilters, setShowFilters] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const [visibleCardId, setVisibleCardId] = useState(null);
+  const cardRefs = useRef(new Map());
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
   // Create route state
   const [showCreate, setShowCreate] = useState(false);
@@ -115,6 +138,23 @@ const RoutesPage = () => {
 
     return list;
   }, [routes, filter, userLocation, savedIds]);
+
+  // ── IntersectionObserver for mobile card visibility ─────────────────────────
+  useEffect(() => {
+    if (!isMobile) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setVisibleCardId(entry.target.dataset.routeId ? Number(entry.target.dataset.routeId) : null);
+          }
+        }
+      },
+      { threshold: 0.5 }
+    );
+    cardRefs.current.forEach((el) => { if (el) observer.observe(el); });
+    return () => observer.disconnect();
+  }, [filteredRoutes, isMobile]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
   const handleSelectRoute = async (route) => {
@@ -250,16 +290,20 @@ const RoutesPage = () => {
             {filteredRoutes.map((route, index) => (
               <motion.article
                 key={route.id}
+                ref={el => { if (el) cardRefs.current.set(route.id, el); else cardRefs.current.delete(route.id); }}
+                data-route-id={route.id}
                 className="route-card"
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.06 }}
                 onClick={() => handleSelectRoute(route)}
+                onMouseEnter={() => setHoveredCard(route.id)}
+                onMouseLeave={() => setHoveredCard(null)}
               >
                 {/* Cover image carousel — only from pin photos */}
                 <div className="route-card-img">
                   {route.pin_images?.length > 0 ? (
-                    <RouteCardCover images={route.pin_images} />
+                    <RouteCardCover images={route.pin_images} isHovered={hoveredCard === route.id || (isMobile && visibleCardId === route.id)} />
                   ) : (
                     <div className="route-img-placeholder">
                       <span>🗺️</span>
@@ -320,12 +364,12 @@ const RoutesPage = () => {
             >
               <button className="modal-close-btn" onClick={closeModal}><X size={16} /></button>
 
-              {/* Cover — from first pin photo */}
+              {/* Cover — carousel from pin photos */}
               <div className="modal-cover">
-                {selectedRoute.pin_images?.length > 0 ? (
+                {routeDetail?.pins?.length > 0 ? (
+                  <ModalCoverCarousel pins={routeDetail.pins} />
+                ) : selectedRoute.pin_images?.length > 0 ? (
                   <img src={selectedRoute.pin_images[0]} alt={selectedRoute.title} />
-                ) : routeDetail?.pins?.find(p => p.image_urls?.[0]) ? (
-                  <img src={routeDetail.pins.find(p => p.image_urls?.[0]).image_urls[0]} alt={selectedRoute.title} />
                 ) : (
                   <div className="modal-cover-placeholder"><span>🗺️</span></div>
                 )}

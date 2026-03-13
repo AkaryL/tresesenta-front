@@ -181,11 +181,11 @@ const Create = () => {
 
         // Bias towards user's current location if available
         if (formData.latitude && formData.longitude) {
-          request.location = new window.google.maps.LatLng(
-            parseFloat(formData.latitude),
-            parseFloat(formData.longitude)
-          );
-          request.radius = 30000; // 30km
+          const lat = parseFloat(formData.latitude);
+          const lng = parseFloat(formData.longitude);
+          request.location = new window.google.maps.LatLng(lat, lng);
+          request.radius = 50000;
+          request.origin = new window.google.maps.LatLng(lat, lng);
         }
 
         autocompleteServiceRef.current.getPlacePredictions(request, (predictions, status) => {

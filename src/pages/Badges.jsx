@@ -31,30 +31,55 @@ import imgVientosMezquital from '../assets/insignias/sello-vientos-del-mezquital
 import imgVolcanPaiso from '../assets/insignias/sello-volcan-del-paiso.png';
 import imgVolcanInfinito from '../assets/insignias/sello-volcan-infinito.png';
 
+// Mapping: sello name -> Mexican state
+const SELLO_STATE_MAP = {
+  'Hidrocálido': 'Aguascalientes',
+  'Frontera Norte': 'Baja California',
+  'Mar de Cortés': 'Baja California Sur',
+  'Raíces de Camelo': 'Campeche',
+  'Raíces Eternas': 'Chiapas',
+  'Camino Real': 'Chihuahua',
+  'Corazón del País': 'Ciudad de México',
+  'Volcán del Paraíso': 'Colima',
+  'Norte Indomable': 'Coahuila',
+  'Tierra del Cine': 'Durango',
+  'Costa Bravía': 'Guerrero',
+  'Vientos del Mezquital': 'Hidalgo',
+  'Volcán Infinito': 'Jalisco',
+  'Riviera Nayarita': 'Nayarit',
+  'Origen Ancestral': 'Oaxaca',
+  'Sierra del Norte': 'Puebla',
+  'Huasteca Mágica': 'San Luis Potosí',
+  'Desierto y Mar': 'Sonora',
+  'Agua y Cacao': 'Tabasco',
+  'Golfo Bravo': 'Tamaulipas',
+  'Camino de Plata': 'Zacatecas',
+};
+
 // Local badges with names and images (fallback if API fails)
 const LOCAL_BADGES = [
-  { name: 'Raíces Eternas', image: imgRaicesEternas, description: 'Explora las Raíces Eternas de México' },
-  { name: 'Agua y Cacao', image: imgAguaCacao, description: 'Descubre la Ruta del Agua y Cacao' },
-  { name: 'Camino de Plata', image: imgCaminoPlata, description: 'Recorre el Camino de Plata' },
-  { name: 'Camino Real', image: imgCaminoReal, description: 'Sigue el Camino Real Histórico' },
-  { name: 'Corazón del País', image: imgCorazonPais, description: 'Visita el Corazón del País' },
-  { name: 'Costa Bravía', image: imgCostaBravia, description: 'Explora la Costa Bravía' },
-  { name: 'Desierto y Mar', image: imgDesiertoMar, description: 'Cruza del Desierto al Mar' },
-  { name: 'Frontera Norte', image: imgFronteraNorte, description: 'Conoce la Frontera Norte' },
-  { name: 'Golfo Bravo', image: imgGolfoBravo, description: 'Navega por el Golfo Bravo' },
-  { name: 'Hidrocálido', image: imgHidrocalido, description: 'Descubre la Región Hidrocálida' },
-  { name: 'Huasteca Mágica', image: imgHuastecaMagica, description: 'Adéntrate en la Huasteca Mágica' },
-  { name: 'Mar de Cortés', image: imgMarCortes, description: 'Explora el Mar de Cortés' },
-  { name: 'Norte Indomable', image: imgNorteIndomable, description: 'Conquista el Norte Indomable' },
-  { name: 'Origen Ancestral', image: imgOrigenAncestral, description: 'Conecta con el Origen Ancestral' },
-  { name: 'Raíces de Camelo', image: imgRaicesCamelo, description: 'Descubre las Raíces de Camelo' },
-  { name: 'Sello Raíces Eternas', image: imgSelloRaicesEternas, description: 'Obtén el Sello de Raíces Eternas' },
-  { name: 'Riviera Nayarita', image: imgRivieraNayarita, description: 'Recorre la Riviera Nayarita' },
-  { name: 'Sierra del Norte', image: imgSierraNorte, description: 'Escala la Sierra del Norte' },
-  { name: 'Tierra del Cine', image: imgTierraCine, description: 'Visita la Tierra del Cine' },
-  { name: 'Vientos del Mezquital', image: imgVientosMezquital, description: 'Siente los Vientos del Mezquital' },
-  { name: 'Volcán del Paraíso', image: imgVolcanPaiso, description: 'Sube al Volcán del Paraíso' },
-  { name: 'Volcán Infinito', image: imgVolcanInfinito, description: 'Alcanza el Volcán Infinito' },
+  { name: 'Hidrocálido', image: imgHidrocalido, state: 'Aguascalientes' },
+  { name: 'Frontera Norte', image: imgFronteraNorte, state: 'Baja California' },
+  { name: 'Mar de Cortés', image: imgMarCortes, state: 'Baja California Sur' },
+  { name: 'Raíces de Camelo', image: imgRaicesCamelo, state: 'Campeche' },
+  { name: 'Raíces Eternas', image: imgRaicesEternas, state: 'Chiapas' },
+  { name: 'Camino Real', image: imgCaminoReal, state: 'Chihuahua' },
+  { name: 'Corazón del País', image: imgCorazonPais, state: 'Ciudad de México' },
+  { name: 'Volcán del Paraíso', image: imgVolcanPaiso, state: 'Colima' },
+  { name: 'Norte Indomable', image: imgNorteIndomable, state: 'Coahuila' },
+  { name: 'Tierra del Cine', image: imgTierraCine, state: 'Durango' },
+  { name: 'Costa Bravía', image: imgCostaBravia, state: 'Guerrero' },
+  { name: 'Vientos del Mezquital', image: imgVientosMezquital, state: 'Hidalgo' },
+  { name: 'Volcán Infinito', image: imgVolcanInfinito, state: 'Jalisco' },
+  { name: 'Riviera Nayarita', image: imgRivieraNayarita, state: 'Nayarit' },
+  { name: 'Origen Ancestral', image: imgOrigenAncestral, state: 'Oaxaca' },
+  { name: 'Sierra del Norte', image: imgSierraNorte, state: 'Puebla' },
+  { name: 'Huasteca Mágica', image: imgHuastecaMagica, state: 'San Luis Potosí' },
+  { name: 'Desierto y Mar', image: imgDesiertoMar, state: 'Sonora' },
+  { name: 'Agua y Cacao', image: imgAguaCacao, state: 'Tabasco' },
+  { name: 'Golfo Bravo', image: imgGolfoBravo, state: 'Tamaulipas' },
+  { name: 'Camino de Plata', image: imgCaminoPlata, state: 'Zacatecas' },
+  { name: 'Sello Raíces Eternas', image: imgSelloRaicesEternas, state: 'Estado de México' },
 ];
 
 const PROFILE_COLORS = [
@@ -91,8 +116,9 @@ const Badges = () => {
         setBadges(LOCAL_BADGES.map((b, index) => ({
           id: index + 1,
           name: b.name,
-          description: b.description,
+          description: `Publica un pin en ${b.state} para desbloquear`,
           image: b.image,
+          state: b.state,
           unlocked: false,
         })));
         setLoading(false);
@@ -256,7 +282,10 @@ const Badges = () => {
                   )}
                 </div>
                 <span className="badge-card-name">{badge.name}</span>
-                {badge.rarity && (
+                {badge.state && (
+                  <span className="badge-card-state">{badge.state}</span>
+                )}
+                {!badge.state && badge.rarity && (
                   <span className="badge-card-state">{badge.rarity}</span>
                 )}
 

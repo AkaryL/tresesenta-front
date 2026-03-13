@@ -49,11 +49,10 @@ const MAP_STYLES = [
   { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e8e0d4' }] },
   { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f0e8db' }] },
   { featureType: 'poi.park', elementType: 'geometry.fill', stylers: [{ color: '#d4e5c9' }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#93867a' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
   { featureType: 'transit', stylers: [{ visibility: 'off' }] },
   { featureType: 'administrative', elementType: 'labels.text.fill', stylers: [{ color: '#93867a' }] },
   { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#93867a' }] },
-  { featureType: 'poi.business', stylers: [{ visibility: 'off' }] },
 ];
 
 const GOOGLE_LIBRARIES = ['places'];
@@ -433,10 +432,11 @@ const Map = () => {
   };
 
   const getMapCenter = () => {
-    if (userLocation) return userLocation;
-    const vp = pins.filter(pin => pin.latitude && pin.longitude);
+    const MEXICO_CENTER = { lat: 23.6345, lng: -102.5528 };
+    if (userLocation && isFinite(userLocation.lat) && isFinite(userLocation.lng)) return userLocation;
+    const vp = pins.filter(pin => isFinite(pin.latitude) && isFinite(pin.longitude));
     if (vp.length > 0) return { lat: vp[0].latitude, lng: vp[0].longitude };
-    return { lat: 19.4326, lng: -99.1332 };
+    return MEXICO_CENTER;
   };
 
   const handleShare = (pin) => {
