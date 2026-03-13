@@ -236,7 +236,19 @@ const Map = () => {
         params = { category: categoryId };
       }
       const response = await pinsAPI.getAll(params);
-      setPins(response.data.pins || []);
+      const newPins = response.data.pins || [];
+      setPins(newPins);
+
+      // Fit map to new pins
+      if (mapRef.current && newPins.length > 0) {
+        const bounds = new window.google.maps.LatLngBounds();
+        newPins.forEach(pin => {
+          const lat = parseFloat(pin.latitude);
+          const lng = parseFloat(pin.longitude);
+          if (!isNaN(lat) && !isNaN(lng)) bounds.extend({ lat, lng });
+        });
+        mapRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
+      }
     } catch (error) {
       console.error('Error changing category:', error);
       setError('Error al filtrar categoria');

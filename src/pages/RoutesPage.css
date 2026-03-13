@@ -363,8 +363,9 @@
   height: 210px;
   overflow: hidden;
   flex-shrink: 0;
+  position: relative;
 }
-.modal-cover img { width: 100%; height: 100%; object-fit: cover; }
+.modal-cover img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
 .modal-cover-placeholder {
   width: 100%;
   height: 100%;

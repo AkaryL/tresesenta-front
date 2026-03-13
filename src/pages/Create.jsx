@@ -132,21 +132,26 @@ const Create = () => {
         location: { lat, lng },
       });
       if (response.results && response.results.length > 0) {
-        // Find city from address components
         let cityName = '';
+        let stateName = '';
         for (const result of response.results) {
           for (const component of result.address_components) {
-            if (component.types.includes('locality')) {
+            if (component.types.includes('locality') && !cityName) {
               cityName = component.long_name;
-              break;
             }
-            if (!cityName && component.types.includes('administrative_area_level_1')) {
-              cityName = component.long_name;
+            if (component.types.includes('administrative_area_level_1') && !stateName) {
+              stateName = component.long_name;
             }
           }
-          if (cityName) break;
+          if (cityName && stateName) break;
         }
+        if (!cityName) cityName = stateName;
         setDetectedCity(cityName);
+
+        // Save state name for badge unlocking
+        if (stateName) {
+          setFormData(prev => ({ ...prev, state_name: stateName }));
+        }
 
         // Match to existing cities
         if (cityName && cities.length > 0) {
@@ -164,73 +169,80 @@ const Create = () => {
     }
   };
 
-  // Location search using Google Places Autocomplete
+  // Location search using Google Places API (New) via HTTP
   const handleLocationSearch = (value) => {
     setLocationSearch(value);
     setLocationResults([]);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    if (!value.trim() || value.length < 3 || !autocompleteServiceRef.current) return;
+    if (!value.trim() || value.length < 3) return;
 
     searchTimeoutRef.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const request = {
-          input: value,
-          componentRestrictions: { country: 'mx' },
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        const body = {
+          textQuery: value,
+          languageCode: 'es',
+          regionCode: 'MX',
+          maxResultCount: 5,
         };
 
-        // Bias towards user's current location if available
+        // Bias towards user's current location
         if (formData.latitude && formData.longitude) {
           const lat = parseFloat(formData.latitude);
           const lng = parseFloat(formData.longitude);
-          request.location = new window.google.maps.LatLng(lat, lng);
-          request.radius = 50000;
-          request.origin = new window.google.maps.LatLng(lat, lng);
+          body.locationBias = {
+            circle: { center: { latitude: lat, longitude: lng }, radius: 50000 },
+          };
         }
 
-        autocompleteServiceRef.current.getPlacePredictions(request, (predictions, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
-            setLocationResults(predictions.map(p => ({
-              place_id: p.place_id,
-              display_name: p.description,
-              structured: p.structured_formatting,
-            })));
-          } else {
-            setLocationResults([]);
-          }
-          setSearchLoading(false);
+        const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': apiKey,
+            'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location',
+          },
+          body: JSON.stringify(body),
         });
+        const data = await res.json();
+        if (data.places) {
+          setLocationResults(data.places.map(p => ({
+            place_id: p.id,
+            display_name: p.formattedAddress || p.displayName?.text || '',
+            main_text: p.displayName?.text || '',
+            lat: p.location?.latitude,
+            lng: p.location?.longitude,
+          })));
+        } else {
+          setLocationResults([]);
+        }
       } catch (e) {
         console.error('Search error:', e);
+      } finally {
         setSearchLoading(false);
       }
     }, 400);
   };
 
   const handleSelectLocation = (result) => {
-    if (!geocoderRef.current) return;
+    const lat = result.lat;
+    const lng = result.lng;
+    if (!lat || !lng) return;
 
-    geocoderRef.current.geocode({ placeId: result.place_id }, (results, status) => {
-      if (status === 'OK' && results[0]) {
-        const loc = results[0].geometry.location;
-        const lat = loc.lat();
-        const lng = loc.lng();
-        setFormData(prev => ({
-          ...prev,
-          latitude: lat.toString(),
-          longitude: lng.toString(),
-        }));
-        setLocationSearch(result.structured?.main_text || result.display_name.split(',').slice(0, 2).join(','));
-        setLocationResults([]);
-        reverseGeocode(lat, lng);
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat.toString(),
+      longitude: lng.toString(),
+    }));
+    setLocationSearch(result.main_text || result.display_name.split(',').slice(0, 2).join(','));
+    setLocationResults([]);
+    reverseGeocode(lat, lng);
 
-        // Pan map to new location
-        if (mapRef.current) {
-          mapRef.current.panTo({ lat, lng });
-          mapRef.current.setZoom(15);
-        }
-      }
-    });
+    if (mapRef.current) {
+      mapRef.current.panTo({ lat, lng });
+      mapRef.current.setZoom(15);
+    }
   };
 
   const handleChange = (e) => {
@@ -350,6 +362,7 @@ const Create = () => {
       };
       if (formData.city_id) pinData.city_id = parseInt(formData.city_id);
       if (formData.shoe_model) pinData.shoe_model = formData.shoe_model;
+      if (formData.state_name) pinData.state_name = formData.state_name;
 
       const pinResponse = await pinsAPI.create(pinData);
 
