@@ -87,6 +87,12 @@ const Create = () => {
     if (isLoaded && window.google) {
       autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService();
       geocoderRef.current = new window.google.maps.Geocoder();
+      // PlacesService needs a div element if map isn't loaded yet
+      if (!placesServiceRef.current) {
+        placesServiceRef.current = new window.google.maps.places.PlacesService(
+          document.createElement('div')
+        );
+      }
     }
   }, [isLoaded]);
 
@@ -169,48 +175,42 @@ const Create = () => {
     }
   };
 
-  // Location search using Google Geocoding API (forward geocode)
+  // Location search using Google Places textSearch for better local results
   const handleLocationSearch = (value) => {
     setLocationSearch(value);
     setLocationResults([]);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    if (!value.trim() || value.length < 3 || !geocoderRef.current) return;
+    if (!value.trim() || value.length < 3 || !placesServiceRef.current) return;
 
-    searchTimeoutRef.current = setTimeout(async () => {
+    searchTimeoutRef.current = setTimeout(() => {
       setSearchLoading(true);
-      try {
-        const request = {
-          address: value + ', México',
-        };
+      const request = {
+        query: value,
+        language: 'es',
+      };
 
-        // Bias towards user's current location
-        if (formData.latitude && formData.longitude) {
-          const lat = parseFloat(formData.latitude);
-          const lng = parseFloat(formData.longitude);
-          request.bounds = new window.google.maps.LatLngBounds(
-            new window.google.maps.LatLng(lat - 0.5, lng - 0.5),
-            new window.google.maps.LatLng(lat + 0.5, lng + 0.5)
-          );
-        }
-
-        geocoderRef.current.geocode(request, (results, status) => {
-          if (status === 'OK' && results) {
-            setLocationResults(results.slice(0, 5).map(r => ({
-              place_id: r.place_id,
-              display_name: r.formatted_address,
-              main_text: r.formatted_address.split(',').slice(0, 2).join(','),
-              lat: r.geometry.location.lat(),
-              lng: r.geometry.location.lng(),
-            })));
-          } else {
-            setLocationResults([]);
-          }
-          setSearchLoading(false);
-        });
-      } catch (e) {
-        console.error('Search error:', e);
-        setSearchLoading(false);
+      // Bias towards user's current location
+      if (formData.latitude && formData.longitude) {
+        const lat = parseFloat(formData.latitude);
+        const lng = parseFloat(formData.longitude);
+        request.location = new window.google.maps.LatLng(lat, lng);
+        request.radius = 30000; // 30km bias
       }
+
+      placesServiceRef.current.textSearch(request, (results, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+          setLocationResults(results.slice(0, 6).map(r => ({
+            place_id: r.place_id,
+            display_name: r.formatted_address || r.name,
+            main_text: r.name,
+            lat: r.geometry.location.lat(),
+            lng: r.geometry.location.lng(),
+          })));
+        } else {
+          setLocationResults([]);
+        }
+        setSearchLoading(false);
+      });
     }, 400);
   };
 
