@@ -506,6 +506,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -645,6 +646,7 @@
    ======================================== */
 .map-container-mobile {
   flex: 1;
+  min-height: 0;
   position: relative;
   width: 100%;
   background: var(--map-bg, #F9F9F9);

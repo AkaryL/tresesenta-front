@@ -235,6 +235,10 @@ const Map = () => {
   // Fit bounds once pins load
   const onMapLoad = useCallback((map) => {
     mapRef.current = map;
+    // Force resize in case container wasn't ready
+    setTimeout(() => {
+      window.google?.maps?.event?.trigger(map, 'resize');
+    }, 100);
   }, []);
 
   useEffect(() => {
