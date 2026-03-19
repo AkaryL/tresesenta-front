@@ -235,12 +235,10 @@ const Map = () => {
   // Fit bounds once pins load
   const onMapLoad = useCallback((map) => {
     mapRef.current = map;
-    // Force resize and fit bounds after map mounts
     setTimeout(() => {
       window.google?.maps?.event?.trigger(map, 'resize');
-      fitBoundsToCurrentPins();
-    }, 150);
-  }, [fitBoundsToCurrentPins]);
+    }, 100);
+  }, []);
 
   // Fit bounds whenever pins change (category switch, initial load)
   const fitBoundsToCurrentPins = useCallback(() => {
@@ -259,7 +257,11 @@ const Map = () => {
   }, [pins]);
 
   useEffect(() => {
-    if (!loading) fitBoundsToCurrentPins();
+    if (!loading) {
+      // Small delay to wait for map to mount after loading spinner
+      const t = setTimeout(fitBoundsToCurrentPins, 200);
+      return () => clearTimeout(t);
+    }
   }, [pins, loading, fitBoundsToCurrentPins]);
 
   const handleCategoryChange = async (categoryId) => {
