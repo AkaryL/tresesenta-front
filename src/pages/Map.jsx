@@ -602,11 +602,11 @@ const Map = () => {
               className={`pin-action-btn ${pin.user_has_liked ? 'liked' : ''}`}
               onClick={(e) => { e.stopPropagation(); handleLike(pin.id); }}
             >
-              <Heart size={18} strokeWidth={2} fill={pin.user_has_liked ? 'currentColor' : 'none'} />
+              <Heart size={14} strokeWidth={2} fill={pin.user_has_liked ? 'currentColor' : 'none'} />
               <span>{pin.likes_count || 0}</span>
             </button>
             <button className="pin-action-btn" onClick={(e) => { e.stopPropagation(); setSelectedPin(pin); }}>
-              <MessageCircle size={18} strokeWidth={2} />
+              <MessageCircle size={14} strokeWidth={2} />
               <span>{pin.comments_count || 0}</span>
             </button>
             <button
@@ -614,10 +614,10 @@ const Map = () => {
               onClick={(e) => { e.stopPropagation(); handleFocusOnMap(pin); }}
               title="Ver en mapa"
             >
-              <Locate size={18} strokeWidth={2} />
+              <Locate size={14} strokeWidth={2} />
             </button>
             <button className="pin-action-btn" onClick={(e) => { e.stopPropagation(); handleShare(pin); }}>
-              <Navigation size={18} strokeWidth={2} />
+              <Navigation size={14} strokeWidth={2} />
             </button>
           </div>
         </div>
