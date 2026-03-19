@@ -157,6 +157,18 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
+      {/* Hero Section */}
+      <section className="profile-hero" style={{ background: `linear-gradient(135deg, ${currentColorScheme.bg}, ${currentColorScheme.bg}dd)` }}>
+        <DesktopHeader />
+        <div className="profile-hero-content">
+          <span className="profile-hero-brand" style={{ color: currentColorScheme.textColor, opacity: 0.6 }}>TRESESENTA</span>
+          <h1 className="profile-hero-title" style={{ color: currentColorScheme.textColor }}>Mi Perfil</h1>
+          <p className="profile-hero-description" style={{ color: currentColorScheme.textColor, opacity: 0.6 }}>
+            Tu pasaporte de explorador
+          </p>
+        </div>
+      </section>
+
       {/* Admin Tab Toggle - only for admin users */}
       {user?.is_admin && (
         <div className="admin-tab-toggle">
@@ -184,17 +196,6 @@ const Profile = () => {
         </Suspense>
       ) : (
       <>
-      {/* Hero Section */}
-      <section className="profile-hero" style={{ background: `linear-gradient(135deg, ${currentColorScheme.bg}, ${currentColorScheme.bg}dd)` }}>
-        <DesktopHeader />
-        <div className="profile-hero-content">
-          <span className="profile-hero-brand" style={{ color: currentColorScheme.textColor, opacity: 0.6 }}>TRESESENTA</span>
-          <h1 className="profile-hero-title" style={{ color: currentColorScheme.textColor }}>Mi Perfil</h1>
-          <p className="profile-hero-description" style={{ color: currentColorScheme.textColor, opacity: 0.6 }}>
-            Tu pasaporte de explorador
-          </p>
-        </div>
-      </section>
 
       {/* Profile Card */}
       <div className="profile-card">

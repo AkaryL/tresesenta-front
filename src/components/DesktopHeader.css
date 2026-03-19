@@ -133,8 +133,7 @@
   .mobile-menu-overlay { display: none !important; }
 }
 
-/* Hide mobile header on map page (has its own mobile header) */
-.map-page .mobile-header-bar { display: none !important; }
+/* Map page mobile header bar is visible (no hamburger, just logo) */
 
 /* ========================================
    DESKTOP HEADER

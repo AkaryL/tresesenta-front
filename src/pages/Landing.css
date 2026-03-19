@@ -466,6 +466,8 @@
 }
 
 @media (max-width: 768px) {
+  .hero-brand { display: none; }
+
   .header-logo-text {
     font-size: 1rem;
   }
