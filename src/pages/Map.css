@@ -516,13 +516,9 @@
   padding: 1.25rem 1.25rem 0.875rem;
   border-bottom: 1px solid #ede9e3;
   flex-shrink: 0;
-}
-
-.mobile-header-top {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .mobile-header-eyebrow {
@@ -550,20 +546,23 @@
   font-style: italic;
 }
 
-/* View Toggle */
+/* View Toggle - full width tabs */
 .view-toggle {
   display: flex;
-  gap: 0.25rem;
-  background: var(--cream);
+  gap: 0;
+  background: #f2efe9;
   padding: 0.2rem;
   border-radius: 10px;
+  flex-shrink: 0;
 }
 
 .view-toggle button {
+  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.375rem;
-  padding: 0.5rem 0.875rem;
+  padding: 0.6rem 0.875rem;
   border: none;
   background: transparent;
   color: var(--gray-mid);
@@ -572,12 +571,13 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  font-family: var(--font-body);
 }
 
 .view-toggle button.active {
   background: white;
-  color: var(--black);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #1a1a18;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* ========================================

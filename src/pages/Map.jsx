@@ -241,18 +241,25 @@ const Map = () => {
     }, 100);
   }, []);
 
-  useEffect(() => {
-    if (!mapRef.current || hasCentered.current || loading) return;
-    const validPins = pins
-    .map(pin => ({ ...pin, latitude: parseFloat(pin.latitude), longitude: parseFloat(pin.longitude) }))
-    .filter(pin => !isNaN(pin.latitude) && !isNaN(pin.longitude));
-    if (validPins.length > 0) {
+  // Fit bounds whenever pins change (category switch, initial load)
+  const fitBoundsToCurrentPins = useCallback(() => {
+    if (!mapRef.current) return;
+    const valid = pins
+      .map(pin => ({ ...pin, latitude: parseFloat(pin.latitude), longitude: parseFloat(pin.longitude) }))
+      .filter(pin => !isNaN(pin.latitude) && !isNaN(pin.longitude));
+    if (valid.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
-      validPins.forEach(pin => bounds.extend({ lat: pin.latitude, lng: pin.longitude }));
+      valid.forEach(pin => bounds.extend({ lat: pin.latitude, lng: pin.longitude }));
       mapRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
-      hasCentered.current = true;
+      window.google.maps.event.addListenerOnce(mapRef.current, 'idle', () => {
+        if (mapRef.current.getZoom() > 15) mapRef.current.setZoom(15);
+      });
     }
-  }, [pins, loading]);
+  }, [pins]);
+
+  useEffect(() => {
+    if (!loading) fitBoundsToCurrentPins();
+  }, [pins, loading, fitBoundsToCurrentPins]);
 
   const handleCategoryChange = async (categoryId) => {
     setSelectedCategory(categoryId);
@@ -266,21 +273,6 @@ const Map = () => {
       const response = await pinsAPI.getAll(params);
       const newPins = response.data.pins || [];
       setPins(newPins);
-
-      // Fit map to new pins
-      if (mapRef.current && newPins.length > 0) {
-        const bounds = new window.google.maps.LatLngBounds();
-        newPins.forEach(pin => {
-          const lat = parseFloat(pin.latitude);
-          const lng = parseFloat(pin.longitude);
-          if (!isNaN(lat) && !isNaN(lng)) bounds.extend({ lat, lng });
-        });
-        mapRef.current.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
-        // Limit max zoom after fitBounds
-        const listener = window.google.maps.event.addListenerOnce(mapRef.current, 'idle', () => {
-          if (mapRef.current.getZoom() > 15) mapRef.current.setZoom(15);
-        });
-      }
     } catch (error) {
       console.error('Error changing category:', error);
       setError('Error al filtrar categoria');
@@ -916,28 +908,26 @@ const Map = () => {
       ) : (
         <div className="mobile-layout">
           <div className="mobile-header">
-            <div className="mobile-header-top">
-              <div className="mobile-header-text">
-                <p className="mobile-header-eyebrow">TRESESENTA</p>
-                <h1>Descubre</h1>
-                <p className="map-subtitle">Lugares autenticos de Mexico</p>
-              </div>
-              <div className="view-toggle">
-                <button
-                  className={viewMode === 'map' ? 'active' : ''}
-                  onClick={() => { setViewMode('map'); requestLocation(); }}
-                >
-                  <MapIcon size={16} />
-                  Mapa
-                </button>
-                <button
-                  className={viewMode === 'grid' ? 'active' : ''}
-                  onClick={() => setViewMode('grid')}
-                >
-                  <List size={16} />
-                  Lista
-                </button>
-              </div>
+            <div className="mobile-header-text">
+              <p className="mobile-header-eyebrow">TRESESENTA</p>
+              <h1>Descubre</h1>
+              <p className="map-subtitle">Lugares autenticos de Mexico</p>
+            </div>
+            <div className="view-toggle">
+              <button
+                className={viewMode === 'map' ? 'active' : ''}
+                onClick={() => { setViewMode('map'); requestLocation(); }}
+              >
+                <MapIcon size={16} />
+                Mapa
+              </button>
+              <button
+                className={viewMode === 'grid' ? 'active' : ''}
+                onClick={() => setViewMode('grid')}
+              >
+                <List size={16} />
+                Lista
+              </button>
             </div>
           </div>
 
