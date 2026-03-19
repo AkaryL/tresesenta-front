@@ -200,13 +200,11 @@ const Badges = () => {
         </div>
       </section>
 
-      {/* Mobile Header */}
-      <div className="badges-header-mobile" style={{ background: colorScheme.bg }}>
-        <button className="btn-back" style={{ color: colorScheme.text }} onClick={() => navigate('/profile')}>
-          <ChevronLeft size={24} />
-        </button>
-        <h1 style={{ color: colorScheme.text }}>{pageTitle}</h1>
-        <div style={{ width: 40 }} />
+      {/* Mobile Header - Routes style */}
+      <div className="badges-header-mobile">
+        <p className="badges-mobile-eyebrow" style={{ color: colorScheme.bg }}>TRESESENTA</p>
+        <h1 className="badges-mobile-title">{pageTitle}</h1>
+        <p className="badges-mobile-subtitle">{pageDescription}</p>
       </div>
 
       {/* Content */}

@@ -534,18 +534,19 @@
 }
 
 .mobile-header h1 {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--black);
   margin: 0;
-  font-family: var(--font-heading);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
 }
 
 .map-subtitle {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--gray-mid);
-  margin: 0.125rem 0 0 0;
+  font-size: 0.8rem;
+  color: #aaa;
+  margin: 0.35rem 0 0 0;
+  font-style: italic;
 }
 
 /* View Toggle */
@@ -877,8 +878,6 @@
 
 /* List view card - Instagram-style */
 .list-card-image {
-  height: auto;
-  aspect-ratio: 4 / 3;
 }
 
 .list-card-image img {
@@ -916,7 +915,7 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
   z-index: 2000;
   padding: 0;
@@ -929,9 +928,9 @@
   max-height: 92vh;
   display: flex;
   flex-direction: column;
-  border-radius: 20px 20px 0 0;
+  border-radius: 0 0 20px 20px;
   overflow: hidden;
-  animation: overlaySlideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: overlaySlideDown 0.35s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .overlay-image-section {
@@ -1304,6 +1303,17 @@
   from {
     opacity: 0;
     transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes overlaySlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
   }
   to {
     opacity: 1;
