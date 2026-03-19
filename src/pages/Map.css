@@ -769,8 +769,8 @@
 }
 
 .pins-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
 }
 
@@ -813,7 +813,8 @@
 }
 
 .pin-content {
-  padding: 0.5rem 0.625rem 0.625rem;
+  padding: 0.625rem 0.75rem 0.75rem;
+  text-align: left;
 }
 
 .pin-header {
@@ -926,7 +927,7 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: center;
   z-index: 2000;
   padding: 0;
@@ -939,9 +940,9 @@
   max-height: 92vh;
   display: flex;
   flex-direction: column;
-  border-radius: 0 0 20px 20px;
+  border-radius: 20px 20px 0 0;
   overflow: hidden;
-  animation: overlaySlideDown 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: overlaySlideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .overlay-image-section {
