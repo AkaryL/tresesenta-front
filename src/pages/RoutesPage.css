@@ -439,7 +439,7 @@
   margin-bottom: 0.5rem;
 }
 
-.pin-card {
+.route-modal .pin-card {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -450,7 +450,7 @@
   cursor: pointer;
   transition: background 0.14s;
 }
-.pin-card:hover { background: #f0ece6; }
+.route-modal .pin-card:hover { background: #f0ece6; }
 
 .pin-card-img {
   width: 50px;
