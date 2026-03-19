@@ -157,9 +157,9 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
+      <DesktopHeader />
       {/* Hero Section */}
       <section className="profile-hero" style={{ background: `linear-gradient(135deg, ${currentColorScheme.bg}, ${currentColorScheme.bg}dd)` }}>
-        <DesktopHeader />
         <div className="profile-hero-content">
           <span className="profile-hero-brand" style={{ color: currentColorScheme.textColor, opacity: 0.6 }}>TRESESENTA</span>
           <h1 className="profile-hero-title" style={{ color: currentColorScheme.textColor }}>Mi Perfil</h1>

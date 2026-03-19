@@ -524,6 +524,15 @@
   flex-shrink: 0;
 }
 
+.mobile-header-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--accent, var(--camel));
+  margin: 0 0 0.1rem;
+  text-transform: uppercase;
+}
+
 .mobile-header h1 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -864,6 +873,26 @@
 
 .pin-focus-btn:hover {
   color: var(--brown) !important;
+}
+
+/* List view card - Instagram-style */
+.list-card-image {
+  height: auto;
+  aspect-ratio: 4 / 3;
+}
+
+.list-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.list-card-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: none;
 }
 
 .pin-distance-badge {

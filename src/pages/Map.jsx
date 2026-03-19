@@ -582,14 +582,14 @@ const Map = () => {
     return (
       <div key={pin.id} className="pin-card" onClick={() => setSelectedPin(pin)}>
         {pin.image_urls && pin.image_urls.length > 0 ? (
-          <div className="pin-image">
+          <div className="pin-image list-card-image">
             <img src={pin.image_urls[0]} alt={pin.title} />
             {dist !== null && (
               <span className="pin-distance-badge">{formatDistance(dist)}</span>
             )}
           </div>
         ) : (
-          <div className="pin-image pin-image-placeholder">
+          <div className="pin-image pin-image-placeholder list-card-image">
             <MapPin size={32} />
             {dist !== null && (
               <span className="pin-distance-badge">{formatDistance(dist)}</span>
@@ -601,7 +601,7 @@ const Map = () => {
             <h3 className="pin-title">{pin.title}</h3>
             {pin.city_name && <span className="pin-city">{pin.city_name}</span>}
           </div>
-          {pin.description && <p className="pin-description">{pin.description}</p>}
+          {pin.description && <p className="pin-description list-card-desc">{pin.description}</p>}
           <div className="pin-footer">
             <button
               className={`pin-action-btn ${pin.user_has_liked ? 'liked' : ''}`}
@@ -917,6 +917,7 @@ const Map = () => {
         <div className="mobile-layout">
           <div className="mobile-header">
             <div>
+              <p className="mobile-header-eyebrow">TRESESENTA</p>
               <h1>Descubre</h1>
               <p className="map-subtitle">Lugares autenticos de Mexico</p>
             </div>

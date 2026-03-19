@@ -188,9 +188,9 @@ const Badges = () => {
 
   return (
     <div className="badges-page">
+      <DesktopHeader />
       {/* Hero Section - Desktop */}
       <section className="badges-hero" style={{ background: `linear-gradient(135deg, ${colorScheme.bg}, ${colorScheme.bg}dd)` }}>
-        <DesktopHeader />
         <div className="badges-hero-content">
           <span className="badges-hero-brand" style={{ color: colorScheme.text, opacity: 0.6 }}>TRESESENTA</span>
           <h1 className="badges-hero-title" style={{ color: colorScheme.text }}>{pageTitle}</h1>

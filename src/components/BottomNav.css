@@ -36,7 +36,7 @@
 }
 
 .nav-item.active {
-  color: var(--camel);
+  color: var(--nav-accent, var(--camel));
 }
 
 .nav-item.active svg {
@@ -57,17 +57,17 @@
 }
 
 .create-btn {
-  width: 56px;
-  height: 56px;
-  background: var(--camel);
+  width: 50px;
+  height: 50px;
+  background: var(--nav-accent, var(--camel));
   color: var(--white);
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(184, 155, 122, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
-  margin-bottom: -8px;
+  margin-bottom: 0;
 }
 
 .nav-item-create:active .create-btn {

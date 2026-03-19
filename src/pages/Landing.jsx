@@ -327,9 +327,8 @@ const Landing = () => {
             <img src={logoTresesenta} alt="Tresesenta" />
           </div>
           <div className="footer-links">
-            <a href="https://tresesenta.com" target="_blank" rel="noopener noreferrer">Tienda</a>
+            <a href="https://tenis360.com/" target="_blank" rel="noopener noreferrer">Tienda</a>
             <Link to="/map">Mapa 360</Link>
-            <a href="https://tresesenta.com/pages/contacto" target="_blank" rel="noopener noreferrer">Contacto</a>
           </div>
           <p className="footer-copy">© 2025 Tresesenta. Todos los derechos reservados.</p>
         </div>
