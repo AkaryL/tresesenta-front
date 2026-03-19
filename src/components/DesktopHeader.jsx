@@ -15,6 +15,9 @@ const DesktopHeader = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loginWithToken } = useAuth();
 
+  // Mobile menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   // Login modal state
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [step, setStep] = useState(STEP.EMAIL);
@@ -135,8 +138,48 @@ const DesktopHeader = () => {
     setMessage('');
   };
 
+  // Close mobile menu on navigation
+  const mobileNav = (path) => {
+    setMobileMenuOpen(false);
+    navigate(path);
+  };
+
   return (
     <>
+      {/* Mobile Header */}
+      <header className="mobile-header-bar">
+        <Link to="/" className="mobile-brand">
+          <img src={logoTresesenta} alt="Tresesenta" className="mobile-brand-logo" />
+        </Link>
+        <button
+          className={`hamburger ${mobileMenuOpen ? 'open' : ''}`}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Menu"
+        >
+          <span /><span /><span />
+        </button>
+      </header>
+
+      {/* Mobile Full-Screen Menu */}
+      <div className={`mobile-menu-overlay ${mobileMenuOpen ? 'open' : ''}`}>
+        <nav className="mobile-menu-nav">
+          <button className="mobile-menu-link" onClick={() => mobileNav('/map')}>Mapa 360</button>
+          {isAuthenticated ? (
+            <>
+              <button className="mobile-menu-link" onClick={() => mobileNav('/passport')}>Pasaporte</button>
+              <button className="mobile-menu-link" onClick={() => mobileNav('/create')}>Crear Pin</button>
+              <button className="mobile-menu-link" onClick={() => mobileNav('/routes')}>Rutas</button>
+              <button className="mobile-menu-link" onClick={() => mobileNav('/leaderboard')}>Ranking</button>
+              <button className="mobile-menu-link" onClick={() => mobileNav('/profile')}>Perfil</button>
+            </>
+          ) : (
+            <button className="mobile-menu-link" onClick={() => { setMobileMenuOpen(false); openLoginModal(); }}>Iniciar Sesion</button>
+          )}
+        </nav>
+        <span className="mobile-menu-brand">TRESESENTA</span>
+      </div>
+
+      {/* Desktop Header */}
       <header className="desktop-header">
         <nav className="desktop-nav">
           <Link to="/" className="desktop-brand">
