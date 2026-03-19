@@ -187,13 +187,23 @@ const Map = () => {
   }, [userLocation, requestLocation]);
 
   const handleFocusOnMap = useCallback((pin) => {
-    if (mapRef.current) {
-      mapRef.current.panTo({ lat: pin.latitude, lng: pin.longitude });
-      mapRef.current.setZoom(Math.max(mapRef.current.getZoom(), 15));
-    }
-    setSelectedPin(pin);
     setViewMode('map');
-  }, []);
+    // On mobile, just center the map without opening the pin detail
+    if (!isDesktop) {
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.panTo({ lat: parseFloat(pin.latitude), lng: parseFloat(pin.longitude) });
+          mapRef.current.setZoom(16);
+        }
+      }, 100);
+    } else {
+      if (mapRef.current) {
+        mapRef.current.panTo({ lat: parseFloat(pin.latitude), lng: parseFloat(pin.longitude) });
+        mapRef.current.setZoom(16);
+      }
+      setSelectedPin(pin);
+    }
+  }, [isDesktop]);
 
   const handleCardClick = useCallback((pin) => {
     if (mapRef.current) {
