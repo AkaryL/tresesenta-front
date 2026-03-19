@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import './Landing.css';
 import './Auth.css';
+import '../components/DesktopHeader.css';
 
 const STEP = {
   EMAIL: 'email',
@@ -19,6 +20,14 @@ import fondoPasos from '../assets/fondo-pasos.jpg';
 const Landing = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loginWithToken } = useAuth();
+
+  // Mobile menu
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const mobileNav = (path) => {
+    setMobileMenuOpen(false);
+    navigate(path);
+  };
 
   // Modal login state
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -152,6 +161,40 @@ const Landing = () => {
       {/* Hero Section */}
       <section className="hero-section">
         {/* Header transparente sobre el video */}
+        {/* Mobile Header */}
+        <header className="landing-header-mobile">
+          <Link to="/" className="landing-mobile-brand">
+            <img src={logoTresesenta} alt="Tresesenta" className="landing-mobile-logo" />
+          </Link>
+          <button
+            className={`hamburger ${mobileMenuOpen ? 'open' : ''}`}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Menu"
+          >
+            <span /><span /><span />
+          </button>
+        </header>
+
+        {/* Mobile Full-Screen Menu */}
+        <div className={`mobile-menu-overlay ${mobileMenuOpen ? 'open' : ''}`}>
+          <nav className="mobile-menu-nav">
+            <button className="mobile-menu-link" onClick={() => mobileNav('/')}>Home</button>
+            <button className="mobile-menu-link" onClick={() => mobileNav('/map')}>Mapa 360</button>
+            {isAuthenticated ? (
+              <>
+                <button className="mobile-menu-link" onClick={() => mobileNav('/passport')}>Pasaporte</button>
+                <button className="mobile-menu-link" onClick={() => mobileNav('/create')}>Crear Pin</button>
+                <button className="mobile-menu-link" onClick={() => mobileNav('/routes')}>Rutas</button>
+                <button className="mobile-menu-link" onClick={() => mobileNav('/profile')}>Perfil</button>
+              </>
+            ) : (
+              <button className="mobile-menu-link" onClick={() => { setMobileMenuOpen(false); openLoginModal(); }}>Iniciar Sesion</button>
+            )}
+          </nav>
+          <span className="mobile-menu-brand">TRESESENTA</span>
+        </div>
+
+        {/* Desktop Header */}
         <header className="landing-header">
           <nav className="landing-nav">
             <Link to="/" className="nav-link">HOME</Link>
