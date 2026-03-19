@@ -669,6 +669,17 @@
   inset: 0;
 }
 
+.map-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.6);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
 
 /* Empty State in Map */
 .empty-state-map {
@@ -751,37 +762,36 @@
    ======================================== */
 .pins-grid-view {
   flex: 1;
-  padding: 1rem;
+  padding: 0;
   padding-bottom: 90px;
   overflow-y: auto;
+  background: #f7f5f2;
 }
 
 .pins-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-/* Pin Card (mobile grid) */
+/* Pin Card (mobile grid) - Instagram style */
 .pin-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  transition: all 0.2s;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   cursor: pointer;
   display: flex;
   flex-direction: column;
 }
 
-.pin-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+.pin-card:active {
+  background: #faf8f5;
 }
 
 .pin-image {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   flex-shrink: 0;
   background: var(--cream);
   overflow: hidden;
@@ -803,7 +813,7 @@
 }
 
 .pin-content {
-  padding: 1rem;
+  padding: 0.75rem 1rem;
 }
 
 .pin-header {

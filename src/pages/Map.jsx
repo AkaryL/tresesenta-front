@@ -934,12 +934,7 @@ const Map = () => {
             </div>
           </div>
 
-          {loading ? (
-            <div className="loading-state">
-              <div className="spinner-map"></div>
-              <p>Cargando mapa...</p>
-            </div>
-          ) : error ? (
+          {error ? (
             <div className="error-state">
               <p>{error}</p>
               <button onClick={loadData} className="btn-retry">Reintentar</button>
@@ -947,6 +942,7 @@ const Map = () => {
           ) : viewMode === 'map' ? (
             <div className="map-container-mobile">
               <div className="categories-filter floating">{renderFilters()}</div>
+              {loading && <div className="map-loading-overlay"><div className="spinner-map"></div></div>}
               <div className="map-controls">
                 <button className="map-ctrl-btn" onClick={() => mapRef.current?.setZoom((mapRef.current?.getZoom() || 12) + 1)} title="Acercar">
                   <Plus size={18} strokeWidth={2.5} />
