@@ -916,26 +916,28 @@ const Map = () => {
       ) : (
         <div className="mobile-layout">
           <div className="mobile-header">
-            <div>
-              <p className="mobile-header-eyebrow">TRESESENTA</p>
-              <h1>Descubre</h1>
-              <p className="map-subtitle">Lugares autenticos de Mexico</p>
-            </div>
-            <div className="view-toggle">
-              <button
-                className={viewMode === 'map' ? 'active' : ''}
-                onClick={() => { setViewMode('map'); requestLocation(); }}
-              >
-                <MapIcon size={16} />
-                Mapa
-              </button>
-              <button
-                className={viewMode === 'grid' ? 'active' : ''}
-                onClick={() => setViewMode('grid')}
-              >
-                <List size={16} />
-                Lista
-              </button>
+            <div className="mobile-header-top">
+              <div className="mobile-header-text">
+                <p className="mobile-header-eyebrow">TRESESENTA</p>
+                <h1>Descubre</h1>
+                <p className="map-subtitle">Lugares autenticos de Mexico</p>
+              </div>
+              <div className="view-toggle">
+                <button
+                  className={viewMode === 'map' ? 'active' : ''}
+                  onClick={() => { setViewMode('map'); requestLocation(); }}
+                >
+                  <MapIcon size={16} />
+                  Mapa
+                </button>
+                <button
+                  className={viewMode === 'grid' ? 'active' : ''}
+                  onClick={() => setViewMode('grid')}
+                >
+                  <List size={16} />
+                  Lista
+                </button>
+              </div>
             </div>
           </div>
 

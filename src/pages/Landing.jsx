@@ -301,7 +301,7 @@ const Landing = () => {
               <span>marcando tendencia.</span>
             </h2>
             <a
-              href="https://tenis360.com/"
+              href="https://tenis360.com/collections/all"
               target="_blank"
               rel="noopener noreferrer"
               className="products-btn"
